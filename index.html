@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta content='width=device-width, initial-scale=1.0' name='viewport'/>
+    <title>LiveFY TV - Live Sports Streaming</title>
+    <meta name="description" content="Watch live sports streaming including Cricket, Football, and major leagues worldwide on LiveFY TV.">
+    <!-- SEO & Mobile Optimization -->
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#000000">
+    <link rel="canonical" href="https://livefy-tv.github.io/" />
+    
+    <!-- 1. Google Analytics -->
+    <script async src='https://www.googletagmanager.com/gtag/js?id=G-QGT6JCVYQS'></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-QGT6JCVYQS');
+    </script>
+
+    <!-- 2. Firebase SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <!-- 3. Security -->
+    <script src='https://cdn.jsdelivr.net/npm/disable-devtool' defer></script>
+
+    <!-- FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- FontAwesome -->
+    <link href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css' rel='stylesheet' media="print" onload="this.media='all'"/>
+    <noscript><link href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css' rel='stylesheet'/></noscript>
+    
+    <!-- Google Fonts -->
+    <link href='https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&amp;display=swap' rel='stylesheet' media="print" onload="this.media='all'"/>
+    <link href='https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600&amp;display=swap' rel='stylesheet' media="print" onload="this.media='all'"/>
+    <link href='https://fonts.googleapis.com/css2?family=Permanent+Marker&amp;display=swap' rel='stylesheet' media="print" onload="this.media='all'"/>
+
+    <!-- ARTPLAYER LIBRARIES -->
+    <script src='https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.js' defer></script>
+    <script src='https://cdn.jsdelivr.net/npm/hls.js/dist/hls.min.js' defer></script>
+    <script src='https://cdn.jsdelivr.net/npm/dashjs/dist/dash.all.min.js' defer></script>
+    <script src='https://cdn.jsdelivr.net/npm/flv.js/dist/flv.min.js' defer></script>
+
+    <style>
+      :root {
+        /* THEME VARIABLES */
+        --bg-body: #000000;
+        --header-bg: #000000;
+        --card-bg: #111111;
+        --primary: #0a1f44;
+        --border-green: #39ff14;
+        --text-main: #ffffff;
+        --text-sub: #bbbbbb;
+        --border-color: #333333;
+        --social-bg: #ffffff;
+        --social-text: #333333;
+      }
+      
+      body.light-mode {
+        --bg-body: #f4f6f8;
+        --header-bg: #ffffff;
+        --card-bg: #ffffff;
+        --primary: #0056b3;
+        --border-green: #00c853;
+        --text-main: #333333;
+        --text-sub: #666666;
+        --border-color: #e0e0e0;
+        --social-bg: #f0f0f0;
+        --social-text: #000000;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+      
+      body { 
+        font-family: 'Roboto', sans-serif; 
+        background: var(--bg-body); 
+        color: var(--text-main); 
+        margin: 0; 
+        overflow-x: hidden; 
+        transition: background 0.3s, color 0.3s; 
+        padding-bottom: 0;
+        -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+      }
+      
+      a { text-decoration: none; color: inherit; }
+      ul { list-style: none; padding: 0; margin: 0; }
+      .widget h2, .widget .title { display: none !important; }
+
+      /* SIDEBAR */
+      .sidebar-panel { position: fixed; top: 0; left: -320px; width: 300px; height: 100%; background: #121212; z-index: 1000; transition: left 0.3s ease; display: flex; flex-direction: column; padding: 0 !important; margin: 0 !important; color: #fff; border-right: 1px solid #333; overflow-y: auto; }
+      .sidebar-panel.active { left: 0; box-shadow: 5px 0 15px rgba(0,0,0,0.8); }
+      .sidebar-panel .widget { margin: 0 !important; padding: 0 !important; border: none !important; }
+      .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 900; display: none; backdrop-filter: blur(2px); }
+      .sidebar-overlay.active { display: block; }
+      .sb-header { padding: 30px 20px; background: linear-gradient(135deg, #0a1f44, #000); font-weight: 900; font-size: 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; color: #fff; text-transform: uppercase; letter-spacing: 1px; margin: 0 !important; }
+      .sb-close-btn { cursor: pointer; color: #ff4757; font-size: 22px; transition: 0.2s; }
+      .sb-close-btn:hover { transform: rotate(90deg); }
+      .sb-menu-list { padding: 0; margin: 0; }
+      .sb-menu-list li a { display: flex; align-items: center; gap: 15px; padding: 16px 20px; border-bottom: 1px solid #222; font-weight: 500; font-size: 15px; transition: 0.3s; color: #ccc; text-decoration: none; background: transparent; }
+      .sb-menu-list li a:hover { background: #1a1a1a; padding-left: 25px; color: #39ff14; }
+      .sb-menu-list li a i { width: 25px; text-align: center; color: #ff4757; }
+      .sb-footer { margin-top: auto; padding: 20px; text-align: center; border-top: 1px solid #222; }
+      .sb-socials { display: flex; justify-content: center; gap: 15px; margin-bottom: 10px; }
+      .sb-socials i { font-size: 18px; color: #888; cursor: pointer; transition: 0.2s; }
+      .sb-socials i:hover { color: #fff; }
+      .sb-ver { font-size: 11px; color: #555; }
+
+      /* HEADER */
+      .main-wrapper { max-width: 600px; margin: 0 auto; min-height: 100vh; position: relative; display: flex; flex-direction: column; }
+      .header-container { background: var(--header-bg); padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border-color); transition: background 0.3s; }
+      .icon-box { width: 40px; height: 40px; background: var(--primary); border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; cursor: pointer; }
+      .logo-main { font-family: 'Permanent Marker', cursive; font-size: 28px; color: var(--text-main); }
+      .content-area { padding: 10px; flex: 1; }
+
+      /* WIDGETS */
+      .social-card { background: var(--social-bg); border: 1px solid #4CAF50; border-radius: 6px; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; color: var(--social-text); }
+      .card-left { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; }
+      .card-btn { background: #25d366; color: #fff; padding: 8px 20px; border-radius: 4px; font-size: 13px; font-weight: 700; }
+      .btn-tg { background: #0088cc; }
+      .filter-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+      .f-btn { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px 0; border-radius: 5px; font-weight: 600; font-size: 13px; cursor: pointer; }
+      .f-btn.active { background: var(--border-color); }
+
+      /* MATCH CARD */
+      #match-list-container { display: flex; flex-direction: column; gap: 15px; padding-bottom: 40px; }
+      .m-card { background: var(--card-bg); color: var(--text-main); border-radius: 12px; padding: 12px 12px 10px 12px; border: 1px solid var(--border-color); position: relative; cursor: pointer; display: flex; flex-direction: column; min-height: 135px; }
+      .m-card.live { border: 1px solid var(--border-green); box-shadow: 0 0 5px rgba(57, 255, 20, 0.2); }
+      .mc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; width: 100%; gap: 10px; }
+      .mc-header-left { display: flex; align-items: center; flex: 1; overflow: hidden; position: relative; height: 25px; min-width: 0; }
+      .mc-league-logo { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; z-index: 10; position: relative; background: var(--card-bg); padding-right: 5px; }
+      .mc-league-text { font-size: 12px; font-weight: 600; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; display: inline-block; z-index: 1; }
+      .scroll-active { animation: rewindScroll 12s linear infinite; }
+      @keyframes rewindScroll { 0% { transform: translateX(0); } 20% { transform: translateX(0); } 80% { transform: translateX(-100%); } 80.1% { transform: translateX(0); } 100% { transform: translateX(0); } }
+      .mc-timer { font-size: 12px; font-weight: 700; color: var(--text-sub); white-space: nowrap; flex-shrink: 0; text-align: right; margin-left: auto; }
+      .live .mc-timer { color: var(--border-green); font-size: 12px; } 
+      .mc-teams { display: flex; align-items: flex-start; justify-content: space-between; flex-grow: 1; padding-top: 5px; }
+      .mc-team { width: 38%; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+      .mc-logo { width: 45px; height: 45px; object-fit: contain; }
+      .mc-name { font-size: 13px; font-weight: 500; line-height: 1.2; text-transform: capitalize; color: var(--text-sub); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+      .mc-status { width: 24%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 15px;}
+      .vs-txt { font-size: 18px; font-weight: 700; color: #555; font-style: italic; }
+      .live-dot-wrap { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+      .blob { width: 10px; height: 10px; background: red; border-radius: 50%; box-shadow: 0 0 5px red; animation: pulse 1s infinite; }
+      .live-txt { color: red; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+      @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
+      .chan-footer { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-color); width: 100%; }
+      .chan-img { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border-color); padding: 2px; background: #fff; object-fit: contain; }
+      .loading-box { text-align: center; padding: 20px; color: var(--text-sub); font-weight: 600; }
+
+      /* DETAILS PAGE */
+      #details-page { display: none; min-height: 100vh; width: 100%; background: #f0f2f5; color: #333; padding-bottom: 20px; }
+      body.view-match #main-app { display: none !important; }
+      body.view-match #details-page { display: block !important; }
+      .dp-header { background: #ffffff; padding: 15px; position: sticky; top: 0; z-index: 210; box-shadow: 0 2px 8px rgba(0,0,0,0.08); color: #000; }
+      .dp-nav { display: flex; align-items: center; justify-content: space-between; }
+      .back-btn { font-size: 20px; cursor: pointer; color: #333; padding: 5px; }
+      .dp-title { font-weight: 800; color: #000; font-size: 18px; text-transform: uppercase; letter-spacing: 0.5px; }
+      .dp-match-card { background: #ffffff; padding: 20px 15px; margin: 15px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e0e0e0; display: flex; flex-direction: column; align-items: center; }
+      .dp-league-logo-large { height: 50px; width: auto; object-fit: contain; margin-bottom: 20px; display: block; }
+      .dp-teams-row { display: flex; justify-content: space-around; align-items: center; width: 100%; }
+      .dp-team { width: 35%; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+      .dp-logo { width: 60px; height: 60px; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2)); }
+      .dp-name { font-size: 14px; font-weight: 700; color: #222; line-height: 1.2; }
+      .dp-vs { font-size: 22px; font-weight: 900; color: #ddd; }
+      .dp-league-name-btm { color: #666; font-size: 15px; font-weight: 800; text-transform: uppercase; margin-top: 15px; letter-spacing: 1px; }
+      .dp-time { margin-top: 5px; font-size: 14px; color: #fff; font-weight: 700; background: #333; display: inline-block; padding: 6px 18px; border-radius: 50px; }
+      .dp-section-title { margin: 20px 15px 10px 15px; font-size: 14px; font-weight: 800; color: #444; border-left: 4px solid #000; padding-left: 10px; text-transform: uppercase; }
+      .bc-table { width: calc(100% - 30px); margin: 0 15px; border-collapse: collapse; background: #ffffff; border-radius: 5px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 14px; border: 1px solid #ddd; }
+      .bc-table th { background: #4a934a; color: #fff; padding: 12px 15px; text-align: center; font-weight: 800; text-transform: uppercase; border-right: 1px solid rgba(255,255,255,0.2); }
+      .bc-table td { padding: 12px 15px; border-bottom: 1px solid #eee; border-right: 1px solid #eee; color: #333; font-weight: 500; text-align: center; }
+      .chan-cell { display: flex; align-items: center; justify-content: center; gap: 10px; }
+      .bc-chan-logo { width: 25px; height: 25px; object-fit: contain; }
+      .bc-table tr:last-child td { border-bottom: none; }
+      
+      .stream-btn { 
+          display: flex; align-items: center; justify-content: center; 
+          background: #000000; color: #fff; font-weight: 800; text-transform: uppercase; 
+          font-size: 13px; margin: 0 15px 10px 15px; padding: 15px 12px; 
+          border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+          cursor: pointer; transition: 0.2s; gap: 8px; border: 1px solid #333; 
+          flex-wrap: wrap; text-align: center; height: auto; min-height: 50px; 
+          line-height: 1.4; white-space: normal; 
+      }
+      .stream-btn:active { transform: scale(0.98); background: #111; }
+
+      .disclaimer-box { margin: 20px 15px 20px 15px; color: #555; font-size: 12px; line-height: 1.6; text-align: justify; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+      .disclaimer-box h4 { color: #d32f2f; margin-bottom: 8px; font-weight: 800; font-size: 13px; text-transform: uppercase; }
+
+      /* MAIN FOOTER */
+      .main-footer-dark { background: #000; color: #fff; padding: 20px 20px 20px 20px; text-align: center; margin-top: 10px; border-top: 1px solid #222; }
+      .mf-social { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+      .mf-btn { width: 40px; height: 40px; border-radius: 50%; background: #111; display: flex; align-items: center; justify-content: center; color: #fff; border: 1px solid #333; font-size: 16px; transition: 0.3s; }
+      .mf-btn:hover { background: #fff; color: #000; }
+      .mf-divider { width: 100%; height: 1px; background: #222; margin-bottom: 20px; }
+      .mf-copy { font-size: 13px; color: #ccc; margin-bottom: 20px; font-weight: 500; }
+      .mf-menu { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; }
+      .mf-menu a { color: #fff; font-size: 13px; font-weight: 700; text-transform: capitalize; }
+      .mf-menu a:hover { color: #d32f2f; }
+      .mf-privacy { margin-top: 10px; font-size: 13px; font-weight: 700; }
+      .mf-privacy a { color: #fff; }
+
+      .back-to-top { position: fixed; bottom: 70px; right: 20px; width: 45px; height: 45px; background: #ff0040; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; cursor: pointer; box-shadow: 0 4px 10px rgba(255,0,64,0.4); z-index: 9999; display: none; transition: 0.3s; }
+      .back-to-top.show { display: flex; animation: fadeUp 0.3s; }
+      @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+      #req-popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 10000; display: none; justify-content: center; align-items: center; }
+      .req-card { background: #1a1e23; width: 90%; max-width: 350px; border-radius: 16px; padding: 25px; text-align: center; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: popUpAnim 0.3s ease-out; }
+      @keyframes popUpAnim { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      .req-title { color: #f1c40f; font-size: 22px; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; }
+      .req-body { color: #ccc; font-size: 14px; line-height: 1.5; margin-bottom: 25px; }
+      .req-btn-join { background: #f1c40f; color: #000; padding: 12px 0; width: 100%; border-radius: 8px; font-weight: 800; font-size: 16px; display: block; text-decoration: none; margin-bottom: 20px; transition: 0.2s; }
+      .req-btn-join:active { transform: scale(0.98); opacity: 0.9; }
+      .req-footer { display: flex; justify-content: space-between; align-items: center; }
+      .req-link { color: #777; font-size: 12px; cursor: pointer; font-weight: 600; text-decoration: underline; }
+      .req-link:hover { color: #aaa; }
+
+      /* PLAYER MODAL */
+      #player-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f2f5; z-index: 3000; display: none; flex-direction: column; overflow-y: auto; color: #333; padding-bottom: 0; }
+      #player-modal.active { display: block; }
+      .pm-header { background: #fff; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 3005; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: #000; }
+      .pm-logo { font-family: 'Permanent Marker', cursive; color: #000; font-size: 22px; }
+      .ph-close { color: red; font-size: 22px; cursor: pointer; }
+      .pm-social-box { padding: 20px 15px; display: flex; flex-direction: column; gap: 12px; }
+      .pm-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px; border-radius: 50px; color: #fff; font-weight: 700; font-size: 14px; text-transform: capitalize; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.2s; }
+      .pm-btn:active { transform: scale(0.98); }
+      .pm-wa { background: #25d366; }
+      .pm-tg { background: #0088cc; }
+      .pm-video-section { background: #000; margin: 10px 0; padding: 0; width: 100%; border-top: 1px solid #333; border-bottom: 1px solid #333; position: relative; overflow: hidden; text-align: center; }
+      .live-viewer-box { display: none; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 700; color: #ff4757; text-transform: uppercase; background: #1a1a1a; padding: 8px; border-radius: 4px; border: 1px solid #333; margin-top: 10px; display: inline-flex; }
+      .live-dot-lg { width: 10px; height: 10px; background: #ff4757; border-radius: 50%; box-shadow: 0 0 8px #ff4757; animation: blinkLive 1.5s infinite; }
+      @keyframes blinkLive { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+      .pm-live-badge { color: #fff; font-weight: 900; text-transform: uppercase; border-bottom: 2px solid #fff; display: block; margin: 5px auto 10px auto; width: fit-content; font-size: 16px; letter-spacing: 1px; }
+      
+      #video-wrapper { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; overflow: hidden; }
+      .artplayer-app { width: 100%; height: 100%; position: absolute; top:0; left:0; }
+      
+      .art-layer-quality { display: none; flex-direction: column; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.9); z-index: 100 !important; }
+      .modal-box { background: #1a1a1a; width: 280px; max-height: 80%; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 5px 20px #000; }
+      .modal-header { padding: 10px; text-align: center; font-weight: bold; color: #fff; border-bottom: 1px solid #333; background: #222; }
+      .modal-body { flex: 1; overflow-y: auto; padding: 5px; display: flex; flex-direction: column; gap: 4px; }
+      .q-option { padding: 10px; background: #2b2b2b; color: #ccc; border-radius: 4px; font-size: 14px; display: flex; justify-content: space-between; cursor: pointer; }
+      .q-option:hover { background: #383838; }
+      .q-option.active { background: #0984e3; color: white; font-weight: bold; }
+      .q-bitrate { font-size: 11px; opacity: 0.6; }
+      .modal-close { padding: 10px; text-align: center; color: #ff4757; font-weight: bold; cursor: pointer; border-top: 1px solid #333; background: #222; }
+      .modal-close:active { background: #333; }
+
+      /* APP FOOTER */
+      .app-footer { background: #1a1a1a; color: #bbb; padding: 30px 20px 20px 20px; margin-top: 10px; font-size: 14px; border-top: 1px solid #222; text-align:left; }
+      .footer-col { margin-bottom: 30px; text-align: left; }
+      .f-title { color: #fff; font-weight: 700; text-transform: uppercase; font-size: 14px; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 2px solid #d32f2f; display: inline-block; }
+      .f-text { line-height: 1.6; font-size: 13px; color: #aaa; }
+      .f-links { list-style: none; padding: 0; }
+      .f-links li { padding: 8px 0; border-bottom: 1px solid #333; font-size: 13px; cursor: pointer; transition: 0.2s; color: #ccc; }
+      .f-links li:last-child { border-bottom: none; }
+      .f-links li:hover { color: #fff; padding-left: 5px; }
+      .f-input-group { display: flex; gap: 5px; margin-top: 10px; }
+      .f-input { background: #333; border: none; padding: 10px; color: #fff; width: 100%; border-radius: 4px; font-size: 12px; }
+      .f-btn-sub { background: #d32f2f; color: #fff; border: none; padding: 0 15px; border-radius: 4px; font-weight: 700; cursor: pointer; }
+      .copyright-big { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #333; font-size: 13px; color: #888; }
+      .copyright-big span { color: #d32f2f; font-weight: 700; }
+      .Header { display: none; }
+    </style>
+  </head>
+  
+  <body>
+
+    <!-- BACK TO TOP BUTTON -->
+    <div class='back-to-top' id='btn-back-to-top' onclick='scrollToTop()'>
+       <i class='fa-solid fa-chevron-up'></i>
+    </div>
+
+    <!-- NEW REQUEST POPUP -->
+    <div id='req-popup-overlay'>
+       <div class='req-card'>
+          <div class='req-title'>Request a Match!</div>
+          <div class='req-body'>Missing a game? Join our Telegram Group and comment which match you want us to add manually.</div>
+          <a class='req-btn-join' href='https://t.me/livefytv'>Join Now</a>
+          <div class='req-footer'>
+             <div class='req-link' onclick='dontShowToday()'>Don't show today</div>
+             <div class='req-link' onclick='closePopup()'>Already Joined</div>
+          </div>
+       </div>
+    </div>
+
+    <!-- DETAILS PAGE (Responsive) -->
+    <div id='details-page'>
+       <div class='dp-header'>
+          <div class='dp-nav'>
+             <i class='fa-solid fa-arrow-left back-btn' onclick='goHome()'></i>
+             <span class='dp-title'>Match Center</span>
+             <div style='width:20px'></div>
+          </div>
+       </div>
+       <div id='details-content'>
+          <div class='loading-box'>Loading Match Data...</div>
+       </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class='sidebar-overlay' id='overlay' onclick='toggleSidebar()'></div>
+    <div class='sidebar-panel' id='SIDEBAR_MENU_AREA'>
+      <div class="sb-header">MENU <i class="fa-solid fa-xmark sb-close-btn" onclick="toggleSidebar()"></i></div>
+             <ul class="sb-menu-list">
+                <li><a href="#" onclick="toggleSidebar(); return false;"><i class="fa-solid fa-house"></i> Home</a></li>
+                <li><a href="https://t.me/livefytv"><i class="fa-solid fa-envelope"></i> Contact Us</a></li>
+                <li><a href="https://t.me/livefytv"><i class="fa-brands fa-android"></i> Download APK</a></li>
+                <li><a href="https://t.me/livefytv"><i class="fa-solid fa-shield-halved"></i> Privacy Policy</a></li>
+             </ul>
+             <div class="sb-footer">
+                <div class="sb-socials">
+                   <i class="fa-brands fa-facebook"></i>
+                   <i class="fa-brands fa-twitter"></i>
+                   <i class="fa-brands fa-instagram"></i>
+                </div>
+                <div class="sb-ver">Version 1.0.0</div>
+             </div>
+    </div>
+
+    <!-- PLAYER PAGE (LANDING STYLE) -->
+    <div id='player-modal'>
+      <div class='pm-header'>
+         <div class='pm-logo'>LiveFY TV</div>
+         <!-- CLOSE BUTTON -->
+         <i class='fa-solid fa-times ph-close' onclick='closePlayer(false)'></i>
+      </div>
+      <!-- Top Social -->
+      <div class='pm-social-box'>
+         <a class='pm-btn pm-wa' href='https://t.me/livefytv' id='pm-wa-btn-top'><i class='fa-brands fa-whatsapp'></i> Join WhatsApp Group</a>
+         <a class='pm-btn pm-tg' href='https://t.me/livefytv' id='pm-tg-btn-top'><i class='fa-brands fa-telegram'></i> Join Telegram Channel</a>
+      </div>
+      
+      <!-- Video Section -->
+      <div class='pm-video-section'>
+
+         <!-- FAKE LIVE COUNTER -->
+         <div class='live-viewer-box' id='live-counter-box'>
+             <div class='live-dot-lg'></div> 
+             <span id='live-count-num'>1,245</span> Watching Live
+         </div>
+
+         <div class='pm-live-badge'>LIVE</div>
+         
+         <!-- ARTPLAYER CONTAINER -->
+         <div id='video-wrapper'>
+             <div class='artplayer-app'></div>
+         </div>
+
+      </div>
+
+      <!-- Bottom Social -->
+      <div class='pm-social-box'>
+         <a class='pm-btn pm-tg' href='https://t.me/livefytv' id='pm-tg-btn-btm'><i class='fa-brands fa-telegram'></i> Join Telegram Channel</a>
+         <a class='pm-btn pm-wa' href='https://t.me/livefytv' id='pm-wa-btn-btm'><i class='fa-brands fa-whatsapp'></i> Join WhatsApp Group</a>
+      </div>
+      <div style='height:30px'></div>
+
+      <!-- FOOTER FOR PLAYER PAGE (BIG) -->
+      <div class='app-footer'>
+         <div class='footer-col'>
+            <div class='f-title'>About Us</div>
+            <div class='f-text'>Your ultimate destination for live sports coverage. Get the latest scores, schedules, and streams for Football, Cricket, and major leagues worldwide.</div>
+         </div>
+         <div class='footer-col'>
+            <div class='f-title'>Learn More</div>
+            <ul class='f-links'>
+               <li><a href='https://t.me/livefytv'>About</a></li>
+               <li><a href='https://t.me/livefytv'>Disclaimer</a></li>
+               <li><a href='https://t.me/livefytv'>Privacy Policy</a></li>
+               <li><a href='https://t.me/livefytv'>Contact</a></li>
+            </ul>
+         </div>
+         <div class='footer-col'>
+            <div class='f-title'>Newsletter</div>
+            <div class='f-text'>Stay up to date with the latest news and relevant updates from us.</div>
+            <div class='f-input-group'>
+               <input class='f-input' placeholder='Email Address' type='text'/>
+               <button class='f-btn-sub'><i class='fa-regular fa-envelope'></i></button>
+            </div>
+         </div>
+         <div class='copyright-big'>
+            Copyright &#169; 2025 LiveFY TV. Managed by <span>LiveFY</span>
+         </div>
+      </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div class='main-wrapper' id='main-app'>
+      <div class='header-container'>
+        <div class='icon-box' onclick='toggleSidebar()'><i class='fa-solid fa-bars'></i></div>
+        <div class='logo-main'>LiveFY TV</div>
+        <div class='icon-box' onclick='toggleTheme()'><i class='fa-solid fa-moon' id='theme-icon'></i></div>
+      </div>
+
+      <div class='content-area'>
+        <div id='Social_Widgets'>
+          <div class="social-card"><div class="card-left"><i class="fa-brands fa-whatsapp" style="color:#25d366;"></i> WhatsApp</div><a href="https://t.me/sptvg" class="card-btn" id="wa-main-btn">Follow</a></div>
+          <div class="social-card" style="border-color:#0088cc"><div class="card-left"><i class="fa-brands fa-telegram" style="color:#0088cc;"></i> Telegram</div><a href="https://t.me/livefytv" class="card-btn btn-tg" id="tg-main-btn">Join</a></div>
+        </div>
+
+        <div id='Filter_Buttons'>
+          <div class="filter-tabs"><button class="f-btn active" onclick="filterMatch('all', this)">All</button><button class="f-btn" onclick="filterMatch('live', this)">Live</button><button class="f-btn" onclick="filterMatch('upcoming', this)">Upcoming</button><button class="f-btn" onclick="filterMatch('recent', this)">Recent</button></div>
+        </div>
+
+        <div id='Match_Area'>
+          <div id="match-list-container"><div class="loading-box">Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- MAIN PAGE FOOTER -->
+      <div class='main-footer-dark'>
+         <div class='mf-social'>
+            <a class='mf-btn' href='#'><i class='fa-brands fa-facebook-f'></i></a>
+            <a class='mf-btn' href='#'><i class='fa-brands fa-twitter'></i></a>
+            <a class='mf-btn' href='#'><i class='fa-brands fa-instagram'></i></a>
+         </div>
+         <div class='mf-divider'></div>
+         <div class='mf-copy'>All Rights Reserved. Powered by LiveFY TV</div>
+         <div class='mf-menu'>
+            <a href='https://t.me/livefytv'>About</a>
+            <a href='https://t.me/livefytv'>Disclaimer</a>
+            <a href='https://t.me/livefytv'>Contact Us</a>
+            <a href='https://www.termsfeed.com/live/0a872711-3b4f-4254-91ac-2e73401b460d'>DMCA</a>
+         </div>
+         <div class='mf-privacy'><a href='https://t.me/livefytv'>Privacy Policy</a></div>
+      </div>
+    </div>
+
+    <!-- LOGIC -->
+    <script>
+      // Firebase Config
+      const firebaseConfig = {
+        apiKey: "AIzaSyBcROeTFNV6haP8ZrnIFH2iuC9oNS6Ccvc",
+        authDomain: "live-bd-24.firebaseapp.com",
+        databaseURL: "https://live-bd-24-default-rtdb.firebaseio.com",
+        projectId: "live-bd-24",
+        storageBucket: "live-bd-24.firebasestorage.app",
+        messagingSenderId: "171477012668",
+        appId: "1:171477012668:web:f2e694da9474ef236e40b9"
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const database = firebase.database();
+
+      function toggleSidebar() { document.getElementById('SIDEBAR_MENU_AREA').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
+      
+      function toggleTheme() {
+         document.body.classList.toggle('light-mode');
+         const icon = document.getElementById('theme-icon');
+         let isLight = document.body.classList.contains('light-mode');
+         if(isLight) { icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); localStorage.setItem('sportify_theme', 'light'); }
+         else { icon.classList.remove('fa-sun'); icon.classList.add('fa-moon'); localStorage.setItem('sportify_theme', 'dark'); }
+      }
+
+      function loadTheme() {
+         const savedTheme = localStorage.getItem('sportify_theme');
+         const icon = document.getElementById('theme-icon');
+         if(savedTheme === 'light') { document.body.classList.add('light-mode'); icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); }
+      }
+
+      window.onscroll = function() {
+          const btn = document.getElementById('btn-back-to-top');
+          if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) { btn.classList.add('show'); } else { btn.classList.remove('show'); }
+      };
+      function scrollToTop() { window.scrollTo({top: 0, behavior: 'smooth'}); }
+
+      const PROXY_URL = "https://external-content.duckduckgo.com/iu/?u=";
+      const SMARTLINK_URL = "https://www.effectivegatecpm.com/zdqc4sm7qt?key=2ee33388356594706e35bcca2fde65ed";
+      
+      let allData = {}; 
+      let allMatches = [];
+      let art = null;
+      let counterInterval = null;
+
+      // GLOBAL VARIABLES FOR PLAYER
+      let qualityLevelsData = [];
+      let currentQualityIndex = -1;
+      let setQualityFunction = null;
+
+      // === ICONS ===
+      const icons = {
+            globe: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/></svg>',
+            gear: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>',
+            aspect: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M5 5h2v2H5V5zm4 0h2v2H9V5zm4 0h2v2h-2V5zm4 0h2v2h-2V5zm0 4h2v2h-2V9zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2zM5 9h2v2H5V9zm0 4h2v2H5v-2zm0 4h2v2H5v-2zm4 0h2v2H9v-2zm4 0h2v2h-2v-2z"/></svg>',
+            fullscreen: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>',
+            pip: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z"/></svg>'
+      };
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const matchSlug = urlParams.get('match');
+
+      if(matchSlug) { document.body.classList.add('view-match'); }
+
+      function getElapsedTime(startTime) {
+         const start = new Date(startTime);
+         const now = new Date();
+         const diff = now - start; if(diff < 0) return ""; 
+         const h = Math.floor(diff / 3600000);
+         const m = Math.floor((diff % 3600000) / 60000);
+         const s = Math.floor((diff % 60000) / 1000);
+         return `${h}:${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+      }
+
+      function initApp() {
+        loadTheme(); 
+        checkPopup();
+
+        // Listen to Firebase
+        database.ref('/').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if(data && data.matches) {
+                allData = data;
+                allMatches = Object.values(data.matches);
+                if(matchSlug) {
+                   const match = allMatches.find(m => `${m.team1Name}-vs-${m.team2Name}`.replace(/\s+/g, '-').toLowerCase() === decodeURIComponent(matchSlug));
+                   if(match) renderDetails(match);
+                   else document.getElementById('details-content').innerHTML = "<div class='loading-box'>Match Not Found</div>";
+                } else {
+                   renderMatches('all');
+                }
+            }
+        });
+
+        // Global Timer Update
+        setInterval(() => updateTimers(), 1000);
+      }
+
+      // === POPUP LOGIC ===
+      function checkPopup() {
+         if(matchSlug) return;
+         const today = new Date().toDateString();
+         const savedDay = localStorage.getItem('sptv_popup_day');
+         if(savedDay !== today) {
+            setTimeout(() => {
+               document.getElementById('req-popup-overlay').style.display = 'flex';
+            }, 2000);
+         }
+      }
+
+      function closePopup() {
+         document.getElementById('req-popup-overlay').style.display = 'none';
+      }
+
+      function dontShowToday() {
+         localStorage.setItem('sptv_popup_day', new Date().toDateString());
+         closePopup();
+      }
+
+      function renderMatches(filter) {
+        const container = document.getElementById('match-list-container');
+        container.innerHTML = "";
+        const now = new Date();
+        let count = 0;
+        
+        allMatches.sort((a,b) => {
+           const endA = a.matchEndTime ? new Date(a.matchEndTime) : new Date(new Date(a.matchTime).getTime() + 4*3600000);
+           const endB = b.matchEndTime ? new Date(b.matchEndTime) : new Date(new Date(b.matchTime).getTime() + 4*3600000);
+           const isLiveA = (now >= new Date(a.matchTime) && now <= endA);
+           const isLiveB = (now >= new Date(b.matchTime) && now <= endB);
+           if (isLiveA && !isLiveB) return -1;
+           if (isLiveB && !isLiveA) return 1;
+           return new Date(a.matchTime) - new Date(b.matchTime);
+        });
+
+        allMatches.forEach(match => {
+           const start = new Date(match.matchTime);
+           const end = match.matchEndTime ? new Date(match.matchEndTime) : new Date(start.getTime() + 4*3600000);
+           let status = 'upcoming';
+           if(now >= start && now <= end) status = 'live';
+           else if(now > end) status = 'recent';
+
+           if(filter === 'all' && status === 'recent') return;
+           if(filter !== 'all' && filter !== status) return;
+           count++;
+           
+           const timeStr = start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true});
+           const dateStr = start.toLocaleDateString([], {month: 'short', day: 'numeric'}).toUpperCase();
+           const sportType = match.sportType ? match.sportType : 'SPORT';
+           
+           let timeDisplay = (status === 'live') ? `Started <span class="live-timer" data-start="${match.matchTime}">${getElapsedTime(match.matchTime)}</span>` : `${dateStr}, ${timeStr}`;
+
+           const fullTitle = `${sportType} | ${match.leagueTitle}`;
+           const isLong = fullTitle.length > 25; 
+
+           let chanHtml = '';
+           if(match.streamLinks && match.streamLinks.length > 0) {
+              chanHtml = '<div class="chan-footer">';
+              match.streamLinks.slice(0, 4).forEach(ch => { if(ch.logo) chanHtml += `<img class="chan-img" src="${PROXY_URL}${ch.logo}" width="28" height="28" loading="lazy" alt="Channel" onerror="this.style.display='none'"/>`; });
+              chanHtml += '</div>';
+           }
+
+           const div = document.createElement('div');
+           div.className = `m-card ${status}`;
+           div.innerHTML = `
+              <div class="mc-header">
+                 <div class="mc-header-left ${isLong ? 'fade-mask':''}"><img class="mc-league-logo" src="${PROXY_URL}${match.leagueLogo}" width="22" height="22" loading="lazy" alt="${match.leagueTitle}" onerror="this.style.display='none'"/>.<span class="mc-league-text ${isLong ? 'scroll-active':''}">${fullTitle}</span></div>
+                 <span class="mc-timer">${timeDisplay}</span>
+              </div>
+              <div class="mc-teams">
+                 <div class="mc-team"><img class="mc-logo" src="${PROXY_URL}${match.team1Logo}" width="45" height="45" loading="lazy" alt="${match.team1Name}"/><span class="mc-name">${match.team1Name}</span></div>
+                 <div class="mc-status">${status === 'live' ? '<div class="live-dot-wrap"><div class="blob"></div><span class="live-txt">LIVE</span></div>' : '<span class="vs-txt">VS</span>'}</div>
+                 <div class="mc-team"><img class="mc-logo" src="${PROXY_URL}${match.team2Logo || match.teamZLogo}" width="45" height="45" loading="lazy" alt="${match.team2Name}"/><span class="mc-name">${match.team2Name}</span></div>
+              </div>
+              ${chanHtml}
+           `;
+           div.onclick = () => { window.location.href = "?match=" + `${match.team1Name}-vs-${match.team2Name}`.replace(/\s+/g, '-').toLowerCase(); };
+           container.appendChild(div);
+        });
+        if(count === 0) container.innerHTML = `<div class="loading-box">No matches available.</div>`;
+      }
+
+      function updateTimers() {
+         document.querySelectorAll('.live-timer').forEach(el => {
+            const start = el.getAttribute('data-start');
+            el.innerText = getElapsedTime(start);
+         });
+      }
+
+      function filterMatch(type, btn) {
+        document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderMatches(type);
+      }
+
+      function getBroadcasters(sport, league) {
+         if (!allData.league_playlists) return []; 
+         const cat = allData.league_playlists[sport] || allData.league_playlists[sport.toUpperCase()];
+         if (!cat) return [];
+         const targetLeague = league.toLowerCase().replace(/[^a-z0-9]/g, "");
+         for (let id in cat) {
+             const leagueData = cat[id];
+             if(leagueData && leagueData.league) {
+                 const dbLeagueName = leagueData.league.toLowerCase().replace(/[^a-z0-9]/g, "");
+                 if (dbLeagueName.includes(targetLeague) || targetLeague.includes(dbLeagueName)) {
+                     if(leagueData.channels) return Object.values(leagueData.channels);
+                 }
+             }
+         }
+         return [];
+      }
+
+      function detectCountry(channelName) {
+         if(!channelName) return "Global";
+         const n = channelName.toUpperCase();
+         if(n.includes("STAR") || n.includes("SONY") || n.includes("JIO") || n.includes("FANCODE")) return "India";
+         if(n.includes("SKY") || n.includes("TNT") || n.includes("BBC")) return "UK";
+         if(n.includes("ESPN") || n.includes("NBC") || n.includes("CBS") || n.includes("FOX")) return "USA";
+         if(n.includes("BEIN")) return "Middle East";
+         if(n.includes("SUPERSPORT")) return "Africa";
+         return "Global";
+      }
+
+      function renderDetails(match) {
+         const content = document.getElementById('details-content');
+         const start = new Date(match.matchTime);
+         const optionsDate = { day: 'numeric', month: 'short', year: 'numeric' };
+         const optionsTime = { hour: '2-digit', minute: '2-digit', hour12: true };
+         const timeStr = `${start.toLocaleDateString('en-GB', optionsDate)} | ${start.toLocaleTimeString('en-US', optionsTime)}`;
+
+         const rawChannels = getBroadcasters(match.sportType, match.leagueTitle);
+         let tableHtml = '';
+         if(rawChannels.length > 0) {
+             tableHtml = `<div class="dp-section-title">Broadcaster List</div><table class="bc-table"><tr><th>Country</th><th>Channel</th></tr>`;
+             rawChannels.forEach(ch => {
+                const cName = ch.name || ch.channel_name || "Unknown"; 
+                const cLogo = ch.logo || '';
+                const country = detectCountry(cName);
+                let logoHtml = cLogo ? `<img src="${PROXY_URL}${cLogo}" width="25" height="25" loading="lazy" alt="Channel" class="bc-chan-logo" onerror="this.style.display='none'"/>` : '';
+                tableHtml += `<tr><td>${country}</td><td class="chan-cell">${logoHtml} ${cName}</td></tr>`;
+             });
+             tableHtml += `</table>`;
+         } else {
+             tableHtml = `<div class="dp-section-title">Broadcaster List</div><div style="padding:15px;text-align:center;color:#666;font-size:13px;">International Listing Available Soon</div>`;
+         }
+
+         let linksHtml = `<div class="dp-section-title">Stream Links</div>`;
+         if(match.streamLinks) {
+            match.streamLinks.forEach((link, index) => {
+               const name = link.name || `Link ${index + 1}`;
+               const safeLink = link.link.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+               linksHtml += `<div class="stream-btn" onclick="triggerAdAndPlay('${safeLink}', '${match.team1Name} vs ${match.team2Name}', '${match.sportType}', '${link.api || ''}')"><i class="fa-solid fa-play"></i> <span style="color:#FFD700; font-weight:900;">${name}</span> <span>| ${match.team1Name} VS ${match.team2Name} | HD</span></div>`;
+            });
+         }
+
+         const disclaimerHtml = `
+            <div class="disclaimer-box">
+                <h4>Important Notice:</h4>
+                <p>LiveFY TV operates strictly as a search and indexing platform for publicly available sports streaming links. We do not host, upload, create, store, transmit, or control any video content displayed on this website.</p>
+            </div>
+         `;
+
+         content.innerHTML = `
+            <div class="dp-match-card">
+               <img class="dp-league-logo-large" src="${PROXY_URL}${match.leagueLogo}" width="100" height="50" loading="lazy" alt="${match.leagueTitle}" onerror="this.style.display='none'"/>
+               <div class="dp-teams-row">
+                  <div class="dp-team"><img class="dp-logo" src="${PROXY_URL}${match.team1Logo}" width="60" height="60" loading="lazy" alt="${match.team1Name}"/><span class="dp-name">${match.team1Name}</span></div>
+                  <div class="dp-vs">VS</div>
+                  <div class="dp-team"><img class="dp-logo" src="${PROXY_URL}${match.team2Logo || match.teamZLogo}" width="60" height="60" loading="lazy" alt="${match.team2Name}"/><span class="dp-name">${match.team2Name}</span></div>
+               </div>
+               <div class="dp-league-name-btm">${match.leagueTitle}</div>
+               <div class="dp-time">${timeStr}</div>
+            </div>
+            ${tableHtml}
+            ${linksHtml}
+            ${disclaimerHtml}
+         `;
+      }
+
+      function goHome() { window.location.href = window.location.pathname; }
+
+      let adClickCount = 0;
+      function triggerAdAndPlay(url, title, sport, drmApi) {
+         adClickCount++;
+         if (adClickCount > 1 && (adClickCount - 2) % 3 === 0) {
+             window.open(SMARTLINK_URL, "_blank", "noopener,noreferrer");
+         }
+         playLink(url, title, sport, drmApi);
+      }
+
+      function updateFakeCounter() {
+          const el = document.getElementById('live-count-num');
+          if(!el) return;
+          let current = parseInt(el.innerText.replace(/,/g, ''));
+          let change = Math.floor(Math.random() * 40) - 15; 
+          let newVal = current + change;
+          if(newVal < 500) newVal = 500 + Math.floor(Math.random()*100); 
+          el.innerText = newVal.toLocaleString();
+      }
+
+      function playLink(url, title, sport, drmApi) {
+         const modal = document.getElementById('player-modal');
+         modal.classList.add('active');
+         document.getElementById('live-counter-box').style.display = 'inline-flex';
+         history.pushState({ modalOpen: true }, "", "#player");
+
+         if(counterInterval) clearInterval(counterInterval);
+         let baseCount = 1200;
+         if(sport && sport.toLowerCase().includes('cricket')) baseCount = 5200;
+         else if(sport && sport.toLowerCase().includes('football')) baseCount = 8500;
+         
+         let startVal = baseCount + Math.floor(Math.random() * 500);
+         document.getElementById('live-count-num').innerText = startVal.toLocaleString();
+         counterInterval = setInterval(updateFakeCounter, 45000); 
+
+         const wrapper = document.getElementById('video-wrapper');
+         wrapper.innerHTML = '<div class="artplayer-app"></div>';
+
+         if (url.trim().startsWith('<iframe') || url.includes('futbollibrelibre.com')) {
+             if (url.includes('futbollibrelibre.com') && !url.trim().startsWith('<iframe')) {
+                 url = `<iframe src="${url}" style="width:100%;aspect-ratio:16/9;border:none;" allow="autoplay;encrypted-media;picture-in-picture;fullscreen" allowfullscreen></iframe>`;
+             }
+             wrapper.innerHTML = url;
+             return;
+         }
+
+         let type = 'customHls';
+         if(url.includes('.mpd')) type = 'customDash';
+         else if(url.includes('.flv')) type = 'customFlv';
+         else if(url.includes('.mp4')) type = 'mp4';
+
+         if (art) art.destroy(false);
+         qualityLevelsData = [];
+         currentQualityIndex = -1;
+
+         let customTypeConfig = {
+            customDash: function (video, url, art) {
+                const player = dashjs.MediaPlayer().create();
+                player.initialize(video, url, true);
+                if (drmApi && drmApi.includes(':')) {
+                    const [kid, key] = drmApi.split(':');
+                    player.setProtectionData({ "org.w3.clearkey": { "clearkeys": { [kid]: key } } });
+                }
+                player.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, function () {
+                    const audioTracks = player.getTracksFor('audio');
+                    const audioList = audioTracks.map((track, i) => ({
+                        default: track === player.getCurrentTrackFor('audio'),
+                        html: track.lang || `Audio ${i+1}`,
+                        index: track 
+                    }));
+                    art.controls.update({
+                        name: 'audioList', html: icons.globe, selector: audioList,
+                        onSelect: (item) => { player.setCurrentTrack(item.index); return icons.globe; }
+                    });
+                    const videoQualities = player.getBitrateInfoListFor('video');
+                    qualityLevelsData = videoQualities.map((q, i) => ({ height: q.height, bitrate: Math.round(q.bitrate / 1000) + ' kbps', index: i }));
+                    setQualityFunction = (index) => {
+                        if(index === -1) player.updateSettings({ 'streaming': { 'abr': { 'autoSwitchBitrate': { 'video': true } } } });
+                        else { player.updateSettings({ 'streaming': { 'abr': { 'autoSwitchBitrate': { 'video': false } } } }); player.setQualityFor('video', index); }
+                        currentQualityIndex = index;
+                    };
+                });
+            },
+            customHls: function (video, url, art) {
+                if (Hls.isSupported()) {
+                    const hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
+                    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                        let audioList = hls.audioTracks.map((t, i) => ({ html: t.name || t.lang || `Audio ${i+1}`, index: i, default: i === hls.audioTrack }));
+                        if(audioList.length === 0) audioList = [{html: 'Default', index: 0, default: true}];
+                        art.controls.update({ name: 'audioList', html: icons.globe, selector: audioList, onSelect: (item) => { hls.audioTrack = item.index; return icons.globe; } });
+                        qualityLevelsData = hls.levels.map((l, i) => ({ height: l.height, bitrate: Math.round(l.bitrate / 1000) + ' kbps', index: i }));
+                        setQualityFunction = (index) => { hls.currentLevel = index; currentQualityIndex = index; };
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) { video.src = url; }
+            }
+         };
+
+         art = new Artplayer({
+            container: '.artplayer-app', url: url, type: type, autoplay: true, setting: false, pip: true, fullscreen: true, theme: '#2196F3',
+            layers: [{ name: 'qualityModal', html: `<div class="modal-box"><div class="modal-header">Quality Options</div><div class="modal-body" id="qList"></div><div class="modal-close" id="qClose">Close</div></div>`, style: { display: 'none', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 100, background: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center' } }],
+            controls: [
+                { name: 'fullscreenBtn', position: 'right', html: icons.fullscreen, index: 10, click: function () { art.fullscreen = !art.fullscreen; } },
+                { name: 'audioList', position: 'right', html: icons.globe, index: 11, selector: [], onSelect: function (item) { return icons.globe; } },
+                { name: 'qualityBtn', position: 'right', html: icons.gear, index: 12, click: function () { buildAndShowQuality(); }},
+                { name: 'pipBtn', position: 'right', html: icons.pip, index: 13, click: function () { art.pip = !art.pip; } },
+                { name: 'aspectRatio', position: 'right', html: icons.aspect, index: 14, selector: [{ html: 'Default', url: 'default', default: true }, { html: '16:9', url: '16:9' }, { html: '4:3', url: '4:3' }], onSelect: function (item) { art.aspectRatio = item.url; return icons.aspect; } }
+            ],
+            customType: customTypeConfig
+         });
+
+         art.on('ready', () => {
+             const layer = art.layers.qualityModal;
+             layer.querySelector('#qClose').addEventListener('click', (e) => { e.stopPropagation(); layer.style.display = 'none'; });
+         });
+      }
+
+      function buildAndShowQuality() {
+          if(qualityLevelsData.length === 0) return;
+          const listContainer = art.layers.qualityModal.querySelector('#qList');
+          listContainer.innerHTML = '';
+          const autoDiv = document.createElement('div');
+          autoDiv.className = `q-option ${currentQualityIndex === -1 ? 'active' : ''}`;
+          autoDiv.innerHTML = `<span>Auto</span> <span class="q-bitrate">Adaptive</span>`;
+          autoDiv.onclick = (e) => { e.stopPropagation(); applyQuality(-1); };
+          listContainer.appendChild(autoDiv);
+          [...qualityLevelsData].reverse().forEach(level => {
+              const div = document.createElement('div');
+              div.className = `q-option ${currentQualityIndex === level.index ? 'active' : ''}`;
+              div.innerHTML = `<span>${level.height}p</span> <span class="q-bitrate">(${level.bitrate})</span>`;
+              div.onclick = (e) => { e.stopPropagation(); applyQuality(level.index); };
+              listContainer.appendChild(div);
+          });
+          art.layers.qualityModal.style.display = 'flex';
+      }
+
+      function applyQuality(index) { if(setQualityFunction) setQualityFunction(index); art.layers.qualityModal.style.display = 'none'; }
+
+      function closePlayer(isBackNav) {
+         const modal = document.getElementById('player-modal');
+         modal.classList.remove('active');
+         if(counterInterval) clearInterval(counterInterval);
+         if (art) { art.destroy(false); art = null; }
+         if(!isBackNav && history.state && history.state.modalOpen) history.back();
+      }
+
+      window.addEventListener('popstate', function(event) { if(document.getElementById('player-modal').classList.contains('active')) closePlayer(true); });
+      window.addEventListener('load', initApp);
+    </script>
+</body>
+</html>

@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Falcon Sports</title>
+    <title>Falcon Sports - Pro Elite Live</title>
     
     <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Rajdhani:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Rajdhani:wght@600;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- SDKs -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     
@@ -20,132 +20,134 @@
 
     <style>
         :root {
-            --falcon-green: #00ff88;
-            --falcon-red: #ff0000;
-            --bg-deep: #06090f;
-            --card-glass: rgba(255, 255, 255, 0.05);
-            --border: rgba(255, 255, 255, 0.1);
+            --primary: #00ff88; 
+            --red: #ff0000;
+            --bg-body: #000000;
+            --bg-header: #000000;
+            --bg-card: #111111;
+            --text-main: #ffffff;
+            --text-sub: #bbbbbb;
+            --border: #333333;
+        }
+
+        body.light-mode {
+            --bg-body: #f4f6f8;
+            --bg-header: #ffffff;
+            --bg-card: #ffffff;
+            --text-main: #1a1a1a;
+            --text-sub: #666666;
+            --border: #e0e0e0;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
         body { 
-            font-family: 'Inter', sans-serif; 
-            background: var(--bg-deep); 
-            color: #fff;
-            overflow-x: hidden;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-main);
+            min-height: 100vh; display: flex; flex-direction: column; transition: 0.3s;
+            user-select: none;
         }
 
         .hidden { display: none !important; }
-        .page { flex: 1; width: 100%; animation: fadeIn 0.3s ease; }
+        .page { flex: 1; width: 100%; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         /* --- Branded Loader --- */
         #loader {
-            position: fixed; inset: 0; background: var(--bg-deep); z-index: 100000;
+            position: fixed; inset: 0; background: #000; z-index: 100000;
             display: flex; justify-content: center; align-items: center;
         }
         .loader-text {
-            font-family: 'Orbitron', sans-serif; font-size: 40px; font-weight: 900;
-            color: var(--falcon-green); letter-spacing: 10px;
-            animation: pulse 1.5s infinite;
+            font-family: 'Orbitron', sans-serif; font-size: 35px; font-weight: 900;
+            color: var(--primary); letter-spacing: 10px; animation: pulse 1.5s infinite;
         }
         @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1); } }
 
         /* --- Header --- */
         header {
             padding: 12px 15px; display: flex; justify-content: space-between; align-items: center;
-            background: rgba(6, 9, 15, 0.98); backdrop-filter: blur(10px);
-            position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border);
+            background: var(--bg-header); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000;
         }
-        .brand { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 700; color: var(--falcon-green); }
+        .brand { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 800; color: #fff; font-style: italic; }
+        .brand span { color: var(--primary); }
+
+        /* --- Social Card --- */
+        .social-card {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+            padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; margin: 10px 12px;
+        }
+        .s-btn { background: #0088cc; color: #fff; padding: 6px 15px; border-radius: 4px; font-weight: 800; font-size: 12px; text-decoration: none; }
 
         /* --- Filter Tabs --- */
-        .filter-tabs {
-            display: flex; gap: 10px; padding: 10px 15px; background: #080c14;
-            overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--border);
-        }
+        .filter-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 10px 12px; }
         .tab {
-            padding: 6px 15px; border-radius: 20px; font-size: 11px; font-weight: 700;
-            background: var(--card-glass); border: 1px solid var(--border);
-            color: #888; cursor: pointer; white-space: nowrap; transition: 0.3s;
+            background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border);
+            padding: 10px 0; border-radius: 5px; font-weight: 600; font-size: 12px; cursor: pointer; text-align: center;
         }
-        .tab.active { background: var(--falcon-green); color: #000; border-color: var(--falcon-green); }
+        .tab.active { background: var(--border); border-bottom: 2px solid var(--primary); }
 
-        /* --- Home: Mini Match Card --- */
-        .match-list { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
-        .m-card {
-            background: var(--card-glass); border-radius: 12px; padding: 12px;
-            border: 1px solid var(--border); cursor: pointer; position: relative;
-        }
-        .m-card.live-border { border-color: var(--falcon-red); }
+        /* --- Match Card (ভিডিওর মতো) --- */
+        .match-list { padding: 5px 12px 40px 12px; display: flex; flex-direction: column; gap: 15px; }
+        .m-card { background: var(--bg-card); border-radius: 12px; padding: 12px; border: 1px solid var(--border); cursor: pointer; }
+        .m-card.live-border { border-color: #39ff14; box-shadow: 0 0 5px rgba(57, 255, 20, 0.1); }
+
+        .mc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; overflow: hidden; }
+        .mc-header-left { display: flex; align-items: center; gap: 6px; flex: 1; overflow: hidden; }
+        .mc-league-logo { width: 18px; height: 18px; object-fit: contain; flex-shrink: 0; background: #fff; border-radius: 3px; }
         
-        .card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px; }
-        .league-img { width: 16px; height: 16px; object-fit: contain; }
-        .league-name { font-size: 10px; font-weight: 700; color: #888; text-transform: uppercase; }
+        .scroll-container { flex: 1; overflow: hidden; white-space: nowrap; position: relative; }
+        .scroll-text { display: inline-block; font-size: 11px; font-weight: 800; color: #fff; text-transform: uppercase; }
+        .scroll-active { animation: rewind 12s linear infinite; }
+        @keyframes rewind { 0%, 20% { transform: translateX(0); } 80% { transform: translateX(-100%); } 100% { transform: translateX(0); } }
 
-        .teams-mini { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
-        .t-mini { display: flex; align-items: center; gap: 8px; flex: 1; }
-        .t-mini img { width: 30px; height: 30px; object-fit: contain; }
-        .t-mini span { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
-        .vs-mini { font-size: 10px; font-weight: 900; color: #333; margin: 0 8px; font-family: 'Orbitron'; }
+        .mc-timer { font-size: 11px; font-weight: 800; color: #888; white-space: nowrap; }
+        .live-green { color: #39ff14; }
 
-        .live-label-red { color: var(--falcon-red); font-family: 'Orbitron'; font-size: 9px; font-weight: 900; text-align: center; margin: 5px 0; animation: blink 1.2s infinite; }
+        .mc-body { display: flex; align-items: center; justify-content: space-between; margin: 10px 0; }
+        .mc-team { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .mc-logo { width: 45px; height: 45px; object-fit: contain; }
+        .mc-team-name { font-size: 12px; font-weight: 700; text-transform: uppercase; color: #fff; }
 
-        .card-channels { display: flex; justify-content: center; gap: 6px; margin-top: 5px; padding-top: 8px; border-top: 1px dotted rgba(255,255,255,0.1); }
-        .chan-img { width: 20px; height: 20px; border-radius: 50%; background: #fff; padding: 2px; object-fit: contain; border: 1px solid rgba(255,255,255,0.1); }
+        .mc-mid-status { width: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .mc-live-badge { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+        .blob { width: 10px; height: 10px; background: red; border-radius: 50%; box-shadow: 0 0 8px red; animation: pulse-red 1s infinite; }
+        @keyframes pulse-red { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.5; } }
+        .live-text { color: red; font-size: 11px; font-weight: 900; font-family: 'Orbitron'; }
 
-        .card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
-        .time-mini { font-size: 10px; color: #00d2ff; font-weight: 600; }
-        .elapsed-timer-mini { font-family: 'Orbitron'; font-size: 9px; color: var(--falcon-red); font-weight: 700; }
+        .mc-footer-chans { display: flex; justify-content: center; gap: 8px; margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border); }
+        .chan-img { width: 26px; height: 26px; border-radius: 50%; background: #fff; padding: 2px; object-fit: contain; border: 1px solid #333; }
 
-        /* --- Updated Match Center (No Stadium Vibe) --- */
-        .details-hero-clean {
-            height: 240px;
-            background: linear-gradient(135deg, #0a111a 0%, #06090f 100%);
-            display: flex; align-items: center; justify-content: center;
-            position: relative; border-bottom: 1px solid var(--border);
-        }
-        .clean-scoreboard {
-            width: 90%; display: flex; align-items: center; justify-content: space-around;
-            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border);
-            padding: 30px 15px; border-radius: 15px;
-        }
-        .cs-team { text-align: center; flex: 1; }
-        .cs-team img { width: 75px; height: 75px; margin-bottom: 10px; }
-        .cs-team h3 { font-size: 14px; font-family: 'Rajdhani'; font-weight: 700; color: #fff; text-transform: uppercase; }
-        .cs-vs { font-family: 'Orbitron'; font-size: 22px; color: var(--falcon-green); text-shadow: 0 0 10px var(--falcon-green); }
+        /* --- Premium Match Center --- */
+        .det-hero { padding: 35px 15px; text-align: center; background: var(--bg-card); border-bottom: 1px solid var(--border); }
+        .det-league-img { width: 65px; height: 65px; object-fit: contain; margin-bottom: 15px; background: #fff; padding: 5px; border-radius: 8px; }
+        .det-teams-row { display: flex; align-items: center; justify-content: space-around; max-width: 500px; margin: 0 auto; }
+        .det-team img { width: 85px; height: 85px; object-fit: contain; }
+        .det-vs { font-family: 'Orbitron'; font-size: 26px; color: var(--primary); font-weight: 900; }
+        .det-schedule { display: inline-block; margin-top: 25px; background: var(--primary); color: #000; padding: 10px 25px; border-radius: 30px; font-family: 'Orbitron'; font-size: 10px; font-weight: 900; }
 
-        .server-section { padding: 25px 15px; background: var(--bg-deep); }
         .server-card {
-            background: #101418; padding: 15px; border-radius: 12px; margin-bottom: 12px;
-            display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); cursor: pointer;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+            padding: 15px; margin: 12px; display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; transition: 0.3s;
         }
-        .s-icon-box { width: 35px; height: 35px; background: var(--falcon-green); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .s-info-row { display: flex; align-items: center; gap: 15px; }
+        .s-icon { width: 35px; height: 35px; background: var(--primary); color: #000; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
 
-        /* --- Advanced Player Elements --- */
+        /* --- Player Area --- */
+        .player-bar { padding: 12px 15px; background: #000; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #222; }
         .video-box { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; overflow: hidden; }
-        #iframe-player { width: 100%; height: 100%; border: none; position: absolute; top: 0; left: 0; z-index: 10; }
+        #iframe-player { width: 100%; height: 100%; border: none; position: absolute; top: 0; left: 0; z-index: 10; display: none; }
         #artplayer-app { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 5; }
+        .viewer-box { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #ff4757; text-transform: uppercase; background: rgba(255,255,255,0.05); padding: 8px 18px; border-radius: 20px; border: 1px solid rgba(255,71,87,0.3); margin-top: 20px; }
 
-        .live-viewer-box { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #ff4757; text-transform: uppercase; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(255,71,87,0.3); margin-top: 10px; }
-        .live-dot-lg { width: 8px; height: 8px; background: #ff4757; border-radius: 50%; box-shadow: 0 0 8px #ff4757; animation: blinkLive 1.5s infinite; }
-        
-        .art-layer-qualityModal { display: none; position: absolute; inset: 0; z-index: 100; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; }
+        /* Quality Modal */
+        .art-layer-qualityModal { display: none; position: absolute; inset: 0; z-index: 100; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; }
         .modal-box { background: #1a1a1a; width: 280px; max-height: 80%; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; }
-        .modal-header { padding: 10px; text-align: center; font-weight: bold; color: #fff; background: #222; border-bottom: 1px solid #333; }
+        .modal-header { padding: 10px; text-align: center; font-weight: bold; color: #fff; background: #222; }
         .modal-body { flex: 1; overflow-y: auto; padding: 5px; display: flex; flex-direction: column; gap: 4px; }
-        .q-option { padding: 10px; background: #2b2b2b; color: #ccc; border-radius: 4px; font-size: 14px; display: flex; justify-content: space-between; cursor: pointer; }
-        .q-option.active { background: var(--falcon-green); color: black; font-weight: bold; }
-        .modal-close { padding: 10px; text-align: center; color: #ff4757; font-weight: bold; cursor: pointer; border-top: 1px solid #333; background: #222; }
+        .q-opt { padding: 12px; background: #2b2b2b; color: #ccc; border-radius: 4px; font-size: 14px; display: flex; justify-content: space-between; cursor: pointer; }
+        .q-opt.active { background: var(--primary); color: black; font-weight: bold; }
+        .modal-close { padding: 12px; text-align: center; color: #ff4757; font-weight: bold; cursor: pointer; background: #222; }
 
-        footer { padding: 25px; background: #04060a; text-align: center; border-top: 1px solid var(--border); font-size: 11px; color: #555; margin-top: auto; }
-        footer b { color: var(--falcon-green); }
-
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
-        @keyframes blinkLive { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        footer { padding: 25px; background: #000; text-align: center; border-top: 1px solid var(--border); font-size: 11px; color: #555; margin-top: auto; }
     </style>
 </head>
 <body>
@@ -155,64 +157,56 @@
     <!-- HOME PAGE -->
     <div id="page-home" class="page">
         <header>
-            <div class="brand">FALCON SPORTS</div>
-            <div style="display:flex; gap:12px;">
-                <a href="https://t.me/falconsports1" style="color:#25d366; font-size:20px;"><i class="fa-brands fa-whatsapp"></i></a>
+            <div class="brand">FALCON <span>SPORTS</span></div>
+            <div style="display:flex; gap:15px; align-items:center;">
+                <i class="fa-solid fa-moon" style="cursor:pointer; color:#fff;" onclick="document.body.classList.toggle('light-mode')"></i>
                 <a href="https://t.me/falconsports1" style="color:#0088cc; font-size:20px;"><i class="fa-brands fa-telegram"></i></a>
             </div>
         </header>
+
+     
         <div class="filter-tabs">
-            <div class="tab active" onclick="setTab('all', this)">ALL</div>
-            <div class="tab" onclick="setTab('live', this)">LIVE</div>
-            <div class="tab" onclick="setTab('upcoming', this)">UPCOMING</div>
-            <div class="tab" onclick="setTab('ended', this)">ENDED</div>
+            <div class="tab active" onclick="setTab('all', this)">All</div>
+            <div class="tab" onclick="setTab('live', this)">Live</div>
+            <div class="tab" onclick="setTab('upcoming', this)">Upcoming</div>
+            <div class="tab" onclick="setTab('ended', this)">Recent</div>
         </div>
+
         <div class="match-list" id="match-container"></div>
     </div>
 
-    <!-- DETAILS PAGE (CLEAN LOOK) -->
+    <!-- DETAILS PAGE -->
     <div id="page-details" class="page hidden">
         <header>
             <i class="fa-solid fa-arrow-left" onclick="history.back()" style="cursor:pointer"></i>
             <div class="brand">MATCH CENTER</div>
-            <div></div>
+            <div style="width:20px"></div>
         </header>
-        <div class="details-hero-clean">
-            <div class="clean-scoreboard" id="scoreboard-data"></div>
-        </div>
-        <div class="server-section">
-            <h4 style="margin-bottom:15px; font-family:'Rajdhani'; color:var(--falcon-green); letter-spacing:1px;">SELECT SERVER</h4>
-            <div id="links-container"></div>
-        </div>
+        <div id="details-content"></div>
+        <div id="links-container"></div>
     </div>
 
     <!-- PLAYER PAGE -->
     <div id="page-player" class="page hidden" style="background:#000;">
-        <header style="background:#000">
+        <div class="player-bar">
             <i class="fa-solid fa-arrow-left" onclick="history.back()" style="color:white; cursor:pointer"></i>
-            <span style="font-size:13px; font-weight:600; color:var(--falcon-green); font-family:'Orbitron';">LIVE STREAM</span>
-            <div></div>
-        </header>
+            <span style="font-size:13px; font-weight:700; color:var(--primary); font-family:Orbitron;">LIVE STREAMING</span>
+        </div>
         <div class="video-box">
             <div id="artplayer-app"></div>
-            <iframe id="iframe-player" class="hidden" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+            <iframe id="iframe-player" allowfullscreen allow="autoplay; encrypted-media"></iframe>
         </div>
         <div style="padding:20px; text-align:center;">
-            <div class="live-viewer-box">
-                <div class="live-dot-lg"></div> 
+            <div class="viewer-box">
+                <div style="width:8px; height:8px; background:#ff4757; border-radius:50%; animation: blink 1s infinite;"></div> 
                 <span id="live-count-num">1,245</span> Watching Now
             </div>
-            <p id="player-match-name" style="font-size:16px; font-weight:700; font-family:'Rajdhani'; margin-top:15px; color:#fff;"></p>
-            <div style="display:flex; gap:10px; margin-top:20px;">
-                <a href="https://t.me/falconsports1" style="flex:1; background:#0088cc; padding:12px; border-radius:10px; text-decoration:none; color:#fff; font-size:12px; font-weight:700;">Join Telegram</a>
-                <a href="https://t.me/falconsports1" style="flex:1; background:#25d366; padding:12px; border-radius:10px; text-decoration:none; color:#fff; font-size:12px; font-weight:700;">Join WhatsApp</a>
-            </div>
+            <p id="player-match-name" style="font-size:16px; font-weight:700; margin-top:20px; color:#fff; font-family:Rajdhani; text-transform:uppercase;"></p>
+            <a href="https://t.me/falconsports1" style="display:block; background:#0088cc; padding:12px; border-radius:10px; text-decoration:none; color:#fff; font-size:13px; font-weight:700; margin-top:25px;"><i class="fa-brands fa-telegram"></i> JOIN TELEGRAM FOR UPDATES</a>
         </div>
     </div>
 
-    <footer>
-        <p>Copyright © 2025 <b>FALCON SPORTS</b></p>
-    </footer>
+    <footer><p>Copyright © 2025 <b>FALCON SPORTS</b></p></footer>
 
     <script>
         const firebaseConfig = {
@@ -235,37 +229,33 @@
         let adCount = 0;
         let counterInterval = null;
 
-        // Player UI Icons
-        const icons = {
+        // Player UI State
+        let qualityLevelsData = [];
+        let currentQualityIndex = -1;
+        let setQualityFunction = null;
+
+        const playerIcons = {
             globe: '<svg width="22" height="22" viewBox="0 0 24 24" fill="#ffffff"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/></svg>',
             gear: '<svg width="22" height="22" viewBox="0 0 24 24" fill="#ffffff"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>',
             aspect: '<svg width="22" height="22" viewBox="0 0 24 24" fill="#ffffff"><path d="M5 5h2v2H5V5zm4 0h2v2H9V5zm4 0h2v2h-2V5zm4 0h2v2h-2V5zm0 4h2v2h-2V9zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2zM5 9h2v2H5V9zm0 4h2v2H5v-2zm0 4h2v2H5v-2zm4 0h2v2H9v-2zm4 0h2v2h-2v-2z"/></svg>'
         };
 
-        let qualityLevelsData = [];
-        let currentQualityIndex = -1;
-        let setQualityFunction = null;
-
         function getElapsed(startTime) {
             const diff = new Date() - new Date(startTime);
             if (diff < 0) return "00:00:00";
-            const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
+            const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
             return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
         }
 
-        function updateFakeCounter() {
-            const el = document.getElementById('live-count-num');
-            if(!el) return;
+        function updateFakeViewer() {
+            const el = document.getElementById('live-count-num'); if(!el) return;
             let current = parseInt(el.innerText.replace(/,/g, ''));
-            let change = Math.floor(Math.random() * 40) - 15; 
-            let newVal = current + change;
-            if(newVal < 500) newVal = 500 + Math.floor(Math.random()*100); 
-            el.innerText = newVal.toLocaleString();
+            let change = Math.floor(Math.random() * 50) - 20;
+            el.innerText = Math.max(500, current + change).toLocaleString();
         }
 
         function renderHome() {
-            const container = document.getElementById('match-container');
-            container.innerHTML = "";
+            const container = document.getElementById('match-container'); container.innerHTML = "";
             const now = new Date();
 
             let filtered = matches.filter(m => {
@@ -277,189 +267,153 @@
             });
 
             filtered.sort((a,b) => {
-                const sA = new Date(a.matchTime), sB = new Date(b.matchTime);
-                const liveA = (now >= sA && now <= (a.matchEndTime ? new Date(a.matchEndTime) : new Date(sA.getTime() + 4*3600000)));
-                const liveB = (now >= sB && now <= (b.matchEndTime ? new Date(b.matchEndTime) : new Date(sB.getTime() + 4*3600000)));
+                const sA = new Date(a.matchTime), liveA = (now >= sA && now <= (a.matchEndTime ? new Date(a.matchEndTime) : new Date(sA.getTime()+4*3600000)));
+                const sB = new Date(b.matchTime), liveB = (now >= sB && now <= (b.matchEndTime ? new Date(b.matchEndTime) : new Date(sB.getTime()+4*3600000)));
                 if(liveA && !liveB) return -1;
                 if(!liveA && liveB) return 1;
                 return sA - sB;
             });
 
             filtered.forEach(m => {
-                const start = new Date(m.matchTime);
-                const isLive = (now >= start && now <= (m.matchEndTime ? new Date(m.matchEndTime) : new Date(start.getTime() + 4*3600000)));
-                let chanLogos = "";
-                if(m.streamLinks) m.streamLinks.forEach(l => { if(l.logo) chanLogos += `<img src="${PROXY}${l.logo}" class="chan-img">`; });
+                const s = new Date(m.matchTime);
+                const isLive = (now >= s && now <= (m.matchEndTime ? new Date(m.matchEndTime) : new Date(s.getTime()+4*3600000)));
+                const title = `${m.sportType || 'SPORT'} | ${m.leagueTitle}`;
+                const isLong = title.length > 25;
+                let chans = ""; if(m.streamLinks) m.streamLinks.forEach(l => { if(l.logo) chans += `<img src="${PROXY}${l.logo}" class="chan-img">`; });
 
                 const card = document.createElement('div');
                 card.className = `m-card ${isLive ? 'live-border' : ''}`;
                 card.innerHTML = `
-                    <div class="card-head"><img src="${PROXY}${m.leagueLogo}" class="league-img"> <span class="league-name">${m.leagueTitle}</span></div>
-                    <div class="teams-mini">
-                        <div class="t-mini"><img src="${PROXY}${m.team1Logo}"><span>${m.team1Name}</span></div>
-                        <div class="vs-mini">VS</div>
-                        <div class="t-mini" style="flex-direction:row-reverse; text-align:right;"><img src="${PROXY}${m.team2Logo || m.teamZLogo}"><span>${m.team2Name}</span></div>
+                    <div class="mc-header">
+                        <div class="mc-header-left">
+                            <img src="${PROXY}${m.leagueLogo}" class="mc-league-logo" onerror="this.style.display='none'">
+                            <div class="scroll-container"><span class="scroll-text ${isLong ? 'scroll-active' : ''}">${title}</span></div>
+                        </div>
+                        <div class="mc-timer ${isLive ? 'live-green' : ''}">${isLive ? 'Started ' + getElapsed(m.matchTime) : s.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
                     </div>
-                    ${isLive ? `<div class="live-label-red">LIVE</div>` : ''}
-                    <div class="card-channels">${chanLogos}</div>
-                    <div class="card-foot">
-                        <div class="time-mini">${start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
-                        ${isLive ? `<div class="elapsed-timer-mini">${getElapsed(m.matchTime)}</div>` : `<div style="font-size:9px;color:#555;">${start.toLocaleDateString([], {day:'numeric',month:'short'})}</div>`}
+                    <div class="mc-body">
+                        <div class="mc-team"><img src="${PROXY}${m.team1Logo}" class="mc-logo"><span class="mc-team-name">${m.team1Name}</span></div>
+                        <div class="mc-mid-status">${isLive ? '<div class="mc-live-badge"><div class="blob"></div><span class="live-text">LIVE</span></div>' : '<span class="vs-text">VS</span>'}</div>
+                        <div class="mc-team"><img src="${PROXY}${m.team2Logo || m.teamZLogo}" class="mc-logo"><span class="mc-team-name">${m.team2Name}</span></div>
                     </div>
+                    <div class="mc-footer-chans">${chans}</div>
                 `;
-                card.onclick = () => showPage('details', m);
+                card.onclick = () => switchPage('details', m);
                 container.appendChild(card);
             });
         }
 
-        function setTab(tab, btn) {
-            activeTab = tab;
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            btn.classList.add('active');
-            renderHome();
-        }
+        function setTab(tab, btn) { activeTab = tab; document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); renderHome(); }
 
-        function showPage(pageId, data = null) {
-            if (!history.state || history.state.page !== pageId) {
-                history.pushState({page: pageId, data: data}, "", "#" + pageId);
-            }
+        function switchPage(id, data = null) {
+            if (!history.state || history.state.page !== id) history.pushState({page: id, data: data}, "", "#" + id);
             document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-            document.getElementById('page-' + pageId).classList.remove('hidden');
+            document.getElementById('page-' + id).classList.remove('hidden');
+            window.scrollTo(0,0);
 
-            if(pageId === 'details') {
-                document.getElementById('scoreboard-data').innerHTML = `
-                    <div class="cs-team"><img src="${PROXY}${data.team1Logo}"><h3>${data.team1Name}</h3></div>
-                    <div class="cs-vs">VS</div>
-                    <div class="cs-team"><img src="${PROXY}${data.team2Logo || data.teamZLogo}"><h3>${data.team2Name}</h3></div>
-                `;
-                const linkBox = document.getElementById('links-container');
-                linkBox.innerHTML = "";
+            if(id === 'details') {
+                const s = new Date(data.matchTime);
+                document.getElementById('details-content').innerHTML = `
+                    <div class="det-hero">
+                        <img src="${PROXY}${data.leagueLogo}" class="det-league-img" onerror="this.style.display='none'">
+                        <div class="det-teams-row">
+                            <div class="det-team"><img src="${PROXY}${data.team1Logo}"><h3>${data.team1Name}</h3></div>
+                            <div class="det-vs">VS</div>
+                            <div class="det-team"><img src="${PROXY}${data.team2Logo || data.teamZLogo}"><h3>${data.team2Name}</h3></div>
+                        </div>
+                        <div class="det-schedule"><i class="fa-regular fa-calendar-check"></i> &nbsp; ${s.toLocaleDateString('en-GB',{day:'numeric',month:'short'})} | ${s.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+                    </div>`;
+                const linkBox = document.getElementById('links-container'); linkBox.innerHTML = "";
                 data.streamLinks.forEach((l, i) => {
-                    const btn = document.createElement('div');
-                    btn.className = "server-card";
-                    btn.innerHTML = `<div style="display:flex;align-items:center;gap:12px;"><div class="s-icon-box"><i class="fa-solid fa-play"></i></div><b>${l.name || 'SERVER '+(i+1)}</b></div><i class="fa-solid fa-chevron-right" style="color:#444"></i>`;
-                    btn.onclick = () => {
-                        adCount++;
-                        if(adCount % 2 === 0) window.open(SMARTLINK, "_blank");
-                        showPage('player', {link: l.link, api: l.api, name: data.team1Name + " vs " + data.team2Name, sport: data.sportType});
-                    };
+                    const btn = document.createElement('div'); btn.className = "server-card";
+                    btn.style.cssText = "background:var(--bg-card); padding:15px; border-radius:12px; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; border:1px solid var(--border); cursor:pointer;";
+                    btn.innerHTML = `<div style="display:flex;align-items:center;gap:12px;"><div style="width:35px;height:35px;background:var(--primary);color:#000;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;"><i class="fa-solid fa-play"></i></div><b>${l.name || 'SERVER '+(i+1)}</b></div><i class="fa-solid fa-chevron-right" style="color:#444"></i>`;
+                    btn.onclick = () => { adCount++; if(adCount%2===0) window.open(SMARTLINK, "_blank"); switchPage('player', {link: l.link, api: l.api, name: data.team1Name + " vs " + data.team2Name, sport: data.sportType}); };
                     linkBox.appendChild(btn);
                 });
             }
 
-            if(pageId === 'player') {
+            if(id === 'player') {
                 document.getElementById('player-match-name').innerText = data.name;
                 if(counterInterval) clearInterval(counterInterval);
-                let baseCount = data.sport?.toLowerCase().includes('cricket') ? 5200 : (data.sport?.toLowerCase().includes('football') ? 8500 : 1200);
-                document.getElementById('live-count-num').innerText = (baseCount + Math.floor(Math.random() * 500)).toLocaleString();
-                counterInterval = setInterval(updateFakeCounter, 45000);
-                initAdvancedPlayer(data.link, data.api);
-            } else {
-                if(art) { art.destroy(); art = null; }
-                if(counterInterval) clearInterval(counterInterval);
-                document.getElementById('iframe-player').src = "";
-            }
+                let base = data.sport?.toLowerCase().includes('cricket') ? 5200 : (data.sport?.toLowerCase().includes('football') ? 8500 : 1200);
+                document.getElementById('live-count-num').innerText = (base + Math.floor(Math.random()*500)).toLocaleString();
+                counterInterval = setInterval(updateFakeViewer, 45000);
+                initHybridPlayer(data.link, data.api);
+            } else { if(art) art.destroy(); if(counterInterval) clearInterval(counterInterval); document.getElementById('iframe-player').src = ""; }
         }
 
-        function initAdvancedPlayer(url, drm) {
-            const artEl = document.getElementById('artplayer-app');
-            const iframeEl = document.getElementById('iframe-player');
-            if(art) { art.destroy(); art = null; }
-            iframeEl.src = ""; iframeEl.classList.add('hidden'); artEl.classList.add('hidden');
+        function initHybridPlayer(url, drm) {
+            const artEl = document.getElementById('artplayer-app'), iframeEl = document.getElementById('iframe-player');
+            if(art) art.destroy(); iframeEl.src = ""; iframeEl.style.display = 'none'; artEl.style.display = 'none';
 
-            const isDirect = url.includes(".m3u8") || url.includes(".mpd") || url.includes(".mp4");
-            const isIframe = url.includes("<iframe");
+            const isStream = url.includes(".m3u8") || url.includes(".mpd") || url.includes(".mp4");
+            const isIframe = url.includes("<iframe") || url.includes("circleplay.top") || url.includes("futbol");
 
-            if (isDirect && !isIframe) {
-                artEl.classList.remove('hidden');
-                qualityLevelsData = []; currentQualityIndex = -1;
-
+            if (isStream && !isIframe) {
+                artEl.style.display = 'block'; qualityLevelsData = []; currentQualityIndex = -1;
                 art = new Artplayer({
-                    container: '#artplayer-app', url: url, autoplay: true, fullscreen: true, pip: true, setting: false, theme: '#00ff88',
+                    container: '#artplayer-app', url: url, autoplay: true, fullscreen: true, pip: true, theme: '#00ff88',
                     layers: [{ name: 'qualityModal', html: `<div class="modal-box"><div class="modal-header">Quality Selection</div><div class="modal-body" id="qList"></div><div class="modal-close" id="qClose">Close</div></div>` }],
                     controls: [
-                        { name: 'qualityBtn', position: 'right', html: icons.gear, index: 10, click: () => buildQualityUI() },
-                        { name: 'audioList', position: 'right', html: icons.globe, index: 11, selector: [] },
-                        { name: 'aspectRatio', position: 'right', html: icons.aspect, index: 12, selector: [{html:'Default',url:'default',default:true},{html:'16:9',url:'16:9'},{html:'4:3',url:'4:3'}], onSelect: (i)=>art.aspectRatio=i.url }
+                        { name: 'qualityBtn', position: 'right', html: playerIcons.gear, index: 10, click: () => buildQualityUI() },
+                        { name: 'audioList', position: 'right', html: playerIcons.globe, index: 11, selector: [] },
+                        { name: 'aspectRatio', position: 'right', html: playerIcons.aspect, index: 12, selector: [{html:'Default',url:'default',default:true},{html:'16:9',url:'16:9'},{html:'4:3',url:'4:3'}], onSelect: (i)=>art.aspectRatio=i.url }
                     ],
                     customType: {
                         mpd: (video, url, art) => {
-                            const player = dashjs.MediaPlayer().create();
-                            player.initialize(video, url, true);
-                            if (drm && drm.includes(':')) {
-                                const [kid, key] = drm.split(':');
-                                player.setProtectionData({ "org.w3.clearkey": { "clearkeys": { [kid]: key } } });
-                            }
-                            player.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
-                                const audioTracks = player.getTracksFor('audio');
-                                const audioList = audioTracks.map((t, i) => ({ default: t === player.getCurrentTrackFor('audio'), html: t.lang || `Audio ${i+1}`, index: t }));
-                                art.controls.update({ name: 'audioList', html: icons.globe, selector: audioList, onSelect: (item) => { player.setCurrentTrack(item.index); return icons.globe; } });
-                                const vQ = player.getBitrateInfoListFor('video');
-                                qualityLevelsData = vQ.map((q, i) => ({ height: q.height, bitrate: Math.round(q.bitrate/1000)+'kbps', index: i }));
-                                setQualityFunction = (idx) => {
-                                    if(idx===-1) player.updateSettings({'streaming':{'abr':{'autoSwitchBitrate':{'video':true}}}});
-                                    else { player.updateSettings({'streaming':{'abr':{'autoSwitchBitrate':{'video':false}}}}); player.setQualityFor('video', idx); }
-                                    currentQualityIndex = idx;
-                                };
+                            const p = dashjs.MediaPlayer().create(); p.initialize(video, url, true);
+                            if(drm && drm.includes(':')) { const [k, v] = drm.split(':'); p.setProtectionData({ "org.w3.clearkey": { "clearkeys": { [k]: v } } }); }
+                            p.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
+                                const tracks = p.getTracksFor('audio');
+                                const list = tracks.map((t, i) => ({ default: t === p.getCurrentTrackFor('audio'), html: t.lang || `Audio ${i+1}`, index: t }));
+                                art.controls.update({ name: 'audioList', html: playerIcons.globe, selector: list, onSelect: (item) => { p.setCurrentTrack(item.index); return playerIcons.globe; } });
+                                qualityLevelsData = p.getBitrateInfoListFor('video').map((q, i) => ({ height: q.height, bitrate: Math.round(q.bitrate/1000)+'kbps', index: i }));
+                                setQualityFunction = (idx) => { if(idx===-1) p.updateSettings({'streaming':{'abr':{'autoSwitchBitrate':{'video':true}}}}); else { p.updateSettings({'streaming':{'abr':{'autoSwitchBitrate':{'video':false}}}}); p.setQualityFor('video', idx); } currentQualityIndex = idx; };
                             });
                         },
                         m3u8: (video, url, art) => {
                             if (Hls.isSupported()) {
                                 const hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
                                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                                    const audioList = hls.audioTracks.map((t, i) => ({ html: t.name || t.lang || `Audio ${i+1}`, index: i, default: i === hls.audioTrack }));
-                                    art.controls.update({ name: 'audioList', html: icons.globe, selector: audioList, onSelect: (item) => { hls.audioTrack = item.index; return icons.globe; } });
+                                    const list = hls.audioTracks.map((t, i) => ({ html: t.name || t.lang || `Audio ${i+1}`, index: i, default: i === hls.audioTrack }));
+                                    art.controls.update({ name: 'audioList', html: playerIcons.globe, selector: list, onSelect: (item) => { hls.audioTrack = item.index; return playerIcons.globe; } });
                                     qualityLevelsData = hls.levels.map((l, i) => ({ height: l.height, bitrate: Math.round(l.bitrate/1000)+'kbps', index: i }));
                                     setQualityFunction = (idx) => { hls.currentLevel = idx; currentQualityIndex = idx; };
                                 });
-                            }
+                            } else if (video.canPlayType('application/vnd.apple.mpegurl')) { video.src = url; }
                         }
                     }
                 });
-
-                art.on('ready', () => {
-                    const layer = art.layers.qualityModal;
-                    layer.querySelector('#qClose').onclick = (e) => { e.stopPropagation(); layer.style.display = 'none'; };
-                });
+                art.on('ready', () => { const l = art.layers.qualityModal; l.querySelector('#qClose').onclick = (e) => { e.stopPropagation(); l.style.display = 'none'; }; });
             } else {
-                iframeEl.classList.remove('hidden');
-                if (isIframe) {
-                    const temp = document.createElement('div'); temp.innerHTML = url;
-                    const ifr = temp.querySelector('iframe'); iframeEl.src = ifr ? ifr.src : "";
-                } else { iframeEl.src = url; }
+                iframeEl.style.display = 'block';
+                if(url.includes("<iframe")) { const t = document.createElement('div'); t.innerHTML = url; iframeEl.src = t.querySelector('iframe').src; } else { iframeEl.src = url; }
             }
         }
 
         function buildQualityUI() {
             if(qualityLevelsData.length === 0) return;
-            const modal = art.layers.qualityModal;
-            const list = modal.querySelector('#qList');
-            list.innerHTML = `<div class="q-option ${currentQualityIndex===-1?'active':''}" onclick="applyQ(-1)"><span>Auto</span><span>Adaptive</span></div>`;
+            const m = art.layers.qualityModal, list = m.querySelector('#qList'); list.innerHTML = `<div class="q-opt ${currentQualityIndex===-1?'active':''}" onclick="applyQ(-1)"><span>Auto</span><span>Adaptive</span></div>`;
             [...qualityLevelsData].reverse().forEach(lvl => {
-                const opt = document.createElement('div');
-                opt.className = `q-option ${currentQualityIndex===lvl.index?'active':''}`;
-                opt.innerHTML = `<span>${lvl.height}p</span><span>${lvl.bitrate}</span>`;
-                opt.onclick = () => applyQ(lvl.index);
-                list.appendChild(opt);
+                const opt = document.createElement('div'); opt.className = `q-opt ${currentQualityIndex===lvl.index?'active':''}`;
+                opt.innerHTML = `<span>${lvl.height}p</span><span>${lvl.bitrate}</span>`; opt.onclick = () => applyQ(lvl.index); list.appendChild(opt);
             });
-            modal.style.display = 'flex';
+            m.style.display = 'flex';
         }
 
         function applyQ(idx) { if(setQualityFunction) setQualityFunction(idx); art.layers.qualityModal.style.display='none'; }
 
-        window.onpopstate = function(e) {
+        window.onpopstate = (e) => {
             const pageId = (e.state && e.state.page) ? e.state.page : 'home';
-            const data = (e.state && e.state.data) ? e.state.data : null;
             document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
             document.getElementById('page-' + pageId).classList.remove('hidden');
-            if(pageId !== 'player') { if(art) {art.destroy(); art=null;} document.getElementById('iframe-player').src=""; }
+            if(pageId !== 'player') { if(art) art.destroy(); document.getElementById('iframe-player').src = ""; }
         };
 
         window.onload = () => {
-            db.ref('/matches').on('value', (snap) => {
-                matches = Object.values(snap.val() || {});
-                renderHome();
-                setTimeout(() => { document.getElementById('loader').style.display='none'; }, 2000);
+            db.ref('/').on('value', (snap) => {
+                const data = snap.val(); if(data && data.matches) { matches = Object.values(data.matches); renderHome(); document.getElementById('loader').style.display='none'; }
             });
             setInterval(() => { if(activeTab === 'all' || activeTab === 'live') renderHome(); }, 1000);
             if(!history.state) history.replaceState({page: 'home'}, "", "#home");

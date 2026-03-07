@@ -42,11 +42,9 @@
             -webkit-tap-highlight-color: transparent; 
         }
         
-        /* Tabs */
         .tab-btn { padding: 12px 6px; font-weight: 700; font-size: 11px; cursor: pointer; color: var(--text-muted); border-bottom: 3px solid transparent; transition: 0.3s; text-transform: uppercase; }
         .tab-btn.active { color: #e11d48; border-bottom-color: #e11d48; background: rgba(225, 29, 72, 0.05); }
         
-        /* Match Card */
         .match-card { background: var(--card-bg); border-radius: 20px; border: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
         .match-card:hover { transform: translateY(-3px); box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.2); }
         
@@ -54,7 +52,6 @@
         .live-pulse { height: 7px; width: 7px; background-color: #ef4444; border-radius: 50%; display: inline-block; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
         
-        /* League Title Sliding */
         .league-info { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; overflow: hidden; flex: 1; }
         .league-info img { width: 22px; height: 22px; object-fit: contain; background: rgba(255,255,255,0.1); padding: 2px; border-radius: 4px; flex-shrink: 0; }
         .league-title-wrapper { overflow: hidden; white-space: nowrap; flex: 1; position: relative; }
@@ -68,14 +65,12 @@
 
         .theme-toggle { width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); transition: 0.3s; }
 
-        /* Overlays */
         #player-overlay { display: none; position: fixed; inset: 0; background: #000; z-index: 2000; }
         .hidden { display: none; }
         .glass-header { background: var(--header-bg); backdrop-filter: blur(15px); border-bottom: 1px solid var(--border-color); }
         
         .broadcaster-tag { background: var(--bg-color); border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 12px; font-size: 11px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
         
-        /* Player Title Sliding */
         .player-title-container { width: 150px; overflow: hidden; white-space: nowrap; }
         .player-title-marquee { display: inline-block; animation: player-marquee 10s linear infinite; }
         @keyframes player-marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
@@ -85,7 +80,6 @@
 </head>
 <body class="dark-mode">
 
-    <!-- Header -->
     <header class="glass-header sticky top-0 z-50">
         <div class="max-w-3xl mx-auto px-4 h-16 flex justify-between items-center">
             <div class="flex items-center gap-2" onclick="location.reload()" style="cursor:pointer">
@@ -106,7 +100,6 @@
 
     <main class="max-w-3xl mx-auto p-4 min-h-screen">
         
-        <!-- Tab Navigation -->
         <div id="home-tabs" class="flex bg-[var(--card-bg)] rounded-2xl shadow-sm border border-[var(--border-color)] mb-6 overflow-hidden p-1">
             <div class="tab-btn flex-1 text-center active rounded-xl" onclick="switchTab('all', this)">All</div>
             <div class="tab-btn flex-1 text-center rounded-xl" onclick="switchTab('live', this)">Live</div>
@@ -119,12 +112,10 @@
             <span id="today-date-str" class="text-[9px] font-bold text-rose-500 bg-rose-500/10 px-2 py-1 rounded-full uppercase"></span>
         </div>
 
-        <!-- MATCH LIST VIEW -->
         <div id="list-view" class="space-y-4">
             <div class="text-center py-20 text-slate-500 font-bold uppercase tracking-widest text-[10px]">Syncing Data...</div>
         </div>
 
-        <!-- MATCH DETAILS VIEW -->
         <div id="details-view" class="hidden">
             <button onclick="goBack()" class="text-slate-500 font-bold mb-6 flex items-center gap-2 text-[10px] hover:text-rose-600 transition uppercase tracking-widest">
                 <i class="fas fa-arrow-left"></i> Back to Schedule
@@ -150,7 +141,6 @@
                     <div id="det-time-box" class="mt-10 inline-block bg-rose-600 text-white px-8 py-3 rounded-2xl text-[10px] font-bold tracking-widest uppercase shadow-lg"></div>
                 </div>
                 
-                <!-- SMART LINK SECTION -->
                 <div class="p-6 border-b border-[var(--border-color)] bg-rose-600/5">
                     <h3 class="text-[9px] font-black text-rose-500 mb-4 tracking-[2px] uppercase">Direct High Speed Link</h3>
                     <a href="https://www.effectivegatecpm.com/zdqc4sm7qt?key=2ee33388356594706e35bcca2fde65ed" class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-[20px] font-bold text-xs shadow-xl active:scale-95 transition-all">
@@ -170,7 +160,6 @@
             </div>
         </div>
 
-        <!-- Footer -->
         <footer id="main-footer" class="mt-12 py-10 text-center">
             <p class="text-[10px] font-black text-slate-500 uppercase tracking-[3px]">
                 Copyright &copy; 2025 <span class="text-rose-600">Falcon Sports</span>
@@ -203,7 +192,6 @@
     </div>
 
     <script>
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBcROeTFNV6haP8ZrnIFH2iuC9oNS6Ccvc",
             authDomain: "live-bd-24.firebaseapp.com",
@@ -219,12 +207,14 @@
         let allMatches = [];
         let leaguePlaylists = {};
         let currentFilter = 'all';
+        let art = null;
 
-        // --- History / Back Button Fix ---
+        // --- Navigation Logic Fix ---
         window.history.replaceState({page: 'home'}, "");
         window.onpopstate = function(event) {
-            if (event.state && event.state.page === 'details') {
-                renderDetailsUI(event.state.matchId);
+            if (event.state) {
+                if (event.state.page === 'home') renderHomeUI();
+                else if (event.state.page === 'details') renderDetailsUI(event.state.matchId, false);
             } else {
                 renderHomeUI();
             }
@@ -275,11 +265,13 @@
             renderMatches();
         }
 
+        // --- উন্নত সর্টিং লজিক ---
         function renderMatches() {
             const container = document.getElementById('list-view');
             container.innerHTML = "";
             const now = new Date();
 
+            // ১. প্রথমে ফিল্টার করা
             let filtered = allMatches.filter(m => {
                 const start = new Date(m.matchTime); const end = new Date(m.matchEndTime);
                 if (currentFilter === 'live') return now >= start && now <= end;
@@ -288,14 +280,32 @@
                 return true; 
             });
 
-            // Sorting: Finished matches at bottom
+            // ২. স্ট্যাটাস এবং সময় অনুযায়ী সর্ট করা
             filtered.sort((a, b) => {
-                const endA = new Date(a.matchEndTime); const endB = new Date(b.matchEndTime);
-                const isFinA = now > endA; const isFinB = now > endB;
-                if (isFinA !== isFinB) return isFinA ? 1 : -1;
-                return new Date(a.matchTime) - new Date(b.matchTime);
+                const startA = new Date(a.matchTime);
+                const endA = new Date(a.matchEndTime);
+                const startB = new Date(b.matchTime);
+                const endB = new Date(b.matchEndTime);
+
+                // Priority Logic: Live=1, Upcoming=2, Finished=3
+                const getPriority = (start, end) => {
+                    if (now >= start && now <= end) return 1; // Live
+                    if (now < start) return 2; // Upcoming
+                    return 3; // Finished
+                };
+
+                const priorityA = getPriority(startA, endA);
+                const priorityB = getPriority(startB, endB);
+
+                if (priorityA !== priorityB) {
+                    return priorityA - priorityB; // স্ট্যাটাস অনুযায়ী সর্ট
+                }
+                
+                // যদি স্ট্যাটাস এক হয়, তবে সময় অনুযায়ী (Ascending)
+                return startA - startB;
             });
 
+            // ৩. রেন্ডার করা
             filtered.forEach(m => {
                 const start = new Date(m.matchTime); const end = new Date(m.matchEndTime);
                 const isLive = now >= start && now <= end; const isFinished = now > end;
@@ -320,7 +330,6 @@
                             <div class="text-[10px] font-black text-slate-600 italic">VS</div>
                             <div class="flex flex-col items-center gap-2 w-[42%]"><img src="${m.team2Logo}" class="w-11 h-11 object-contain"><span class="font-black text-[10px] text-center uppercase truncate w-full">${m.team2Name}</span></div>
                         </div>
-                        <!-- আপনার রিকোয়েস্ট অনুযায়ী টাইম ও ডিটেইলস টেক্সট সেকশন -->
                         <div class="mt-5 pt-3 border-t border-[var(--border-color)] flex justify-between items-center">
                             <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">${dateStr} • ${timeStr}</span>
                             <span class="text-[8px] font-black text-rose-500 uppercase tracking-widest">Match Details <i class="fas fa-chevron-right ml-1"></i></span>
@@ -334,7 +343,7 @@
             renderDetailsUI(id);
         }
 
-        function renderDetailsUI(id) {
+        function renderDetailsUI(id, stopPlayer = true) {
             const m = allMatches.find(x => x.id == id);
             if(!m) return;
             document.getElementById('list-view').classList.add('hidden');
@@ -342,6 +351,7 @@
             document.getElementById('date-context').classList.add('hidden');
             document.getElementById('details-view').classList.remove('hidden');
             document.getElementById('player-overlay').style.display = 'none';
+            if (stopPlayer && art) { art.destroy(); art = null; }
 
             document.getElementById('det-league-name').innerText = m.leagueTitle;
             document.getElementById('det-league-img').src = m.leagueLogo;
@@ -363,7 +373,7 @@
                 sList.innerHTML = `<div class="p-5 bg-rose-500/10 text-rose-500 rounded-[24px] text-[9px] font-black text-center uppercase tracking-widest">Coming Soon...</div>`;
             } else {
                 m.streamLinks.forEach((l, i) => {
-                    sList.innerHTML += `<button onclick="startStreaming('${l.link}', '${m.team1Name} vs ${m.team2Name}')" class="flex items-center justify-between p-4 bg-rose-600 text-white rounded-[20px] font-bold text-xs shadow-lg active:scale-95 transition-all"><span><i class="fas fa-play-circle mr-3"></i> ${l.name || 'SERVER ' + (i + 1)}</span><i class="fas fa-chevron-right opacity-50"></i></button>`;
+                    sList.innerHTML += `<button onclick="startStreaming('${l.link}', '${m.team1Name} vs ${m.team2Name}', '${m.id}')" class="flex items-center justify-between p-4 bg-rose-600 text-white rounded-[20px] font-bold text-xs shadow-lg active:scale-95 transition-all"><span><i class="fas fa-play-circle mr-3"></i> ${l.name || 'SERVER ' + (i + 1)}</span><i class="fas fa-chevron-right opacity-50"></i></button>`;
                 });
             }
             window.scrollTo(0,0);
@@ -375,17 +385,17 @@
             document.getElementById('date-context').classList.remove('hidden');
             document.getElementById('details-view').classList.add('hidden');
             document.getElementById('player-overlay').style.display = 'none';
-            if (art) art.destroy();
+            if (art) { art.destroy(); art = null; }
         }
 
-        let art = null;
-        function startStreaming(url, title) {
+        function startStreaming(url, title, matchId) {
+            window.history.pushState({page: 'details', matchId: matchId}, "");
             document.getElementById('player-match-title').innerText = title;
             document.getElementById('player-overlay').style.display = 'block';
             if (art) art.destroy();
             art = new Artplayer({
                 container: '#artplayer', url: url, type: 'm3u8',
-                customType: { m3u8: (video, url) => { const hls = new Hls(); hls.loadSource(url); hls.attachMedia(video); }},
+                customType: { m3u8: (video, url) => { if (Hls.isSupported()) { const hls = new Hls(); hls.loadSource(url); hls.attachMedia(video); } else { video.src = url; } } },
                 autoplay: true, fullscreen: true, theme: '#e11d48',
             });
         }

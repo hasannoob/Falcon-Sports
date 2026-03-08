@@ -357,16 +357,52 @@
             document.getElementById('det-t2-img').src = m.team2Logo;
             document.getElementById('det-time-box').innerText = new Date(m.matchTime).toLocaleString([], {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}).toUpperCase();
 
-            // Broadcasters
-            const bList = document.getElementById('broadcaster-list'); bList.innerHTML = "";
-            let foundChans = [];
-            const cat = leaguePlaylists[m.sportType || "FOOTBALL"];
-            if(cat) { Object.values(cat).forEach(it => { if(it.league && m.leagueTitle.toLowerCase().includes(it.league.toLowerCase())) foundChans = it.channels || []; }); }
-            if(foundChans.length > 0) {
-                foundChans.forEach(ch => { bList.innerHTML += `<div class="broadcaster-tag"><i class="fas fa-tv"></i> ${ch.name}</div>`; });
-            } else { bList.innerHTML = `<span class="text-[9px] text-slate-500 italic uppercase">No Broadcasters Found</span>`; }
+// --- Broadcasters Logic (এই অংশটুকু পরিবর্তন করুন) ---
+const bList = document.getElementById('broadcaster-list'); 
+bList.innerHTML = "";
+let foundChans = [];
 
-            // Servers Restored with "Coming Soon" logic
+// ১. ম্যাচটি কোন স্পোর্টস টাইপের (FOOTBALL নাকি CRICKET) সেটি দেখা
+const matchSport = m.sportType || "FOOTBALL"; 
+
+// ২. ডাটাবেসে সেই স্পোর্টস ক্যাটাগরির প্লেলিস্ট আছে কি না চেক করা
+const sportCategoryData = leaguePlaylists[matchSport];
+
+if (sportCategoryData) {
+    // ৩. ঐ স্পোর্টস ক্যাটাগরির ভেতরে সব লিগ প্লেলিস্ট চেক করা
+    Object.values(sportCategoryData).forEach(item => {
+        if (item.league && m.leagueTitle) {
+            let matchLeagueName = m.leagueTitle.toLowerCase().trim();
+            let playlistLeagueName = item.league.toLowerCase().trim();
+            
+            // ৪. লিগের নাম আংশিক বা হুবহু মিললে চ্যানেলগুলো নিয়ে নেওয়া
+            if (matchLeagueName.includes(playlistLeagueName) || playlistLeagueName.includes(matchLeagueName)) {
+                foundChans = item.channels || [];
+            }
+        }
+    });
+}
+
+// ৫. যদি নির্দিষ্ট স্পোর্টস টাইপে না পায়, তবে সব ক্যাটাগরিতে একবার সার্চ করা (সেফটি চেক)
+if (foundChans.length === 0 && leaguePlaylists) {
+    Object.values(leaguePlaylists).forEach(cat => {
+        Object.values(cat).forEach(item => {
+            if (item.league && m.leagueTitle && m.leagueTitle.toLowerCase().includes(item.league.toLowerCase())) {
+                foundChans = item.channels || [];
+            }
+        });
+    });
+}
+
+// ৬. চ্যানেলগুলো স্ক্রিনে দেখানো
+if (foundChans.length > 0) {
+    foundChans.forEach(ch => { 
+        bList.innerHTML += `<div class="broadcaster-tag"><i class="fas fa-tv"></i> ${ch.name}</div>`; 
+    });
+} else { 
+    bList.innerHTML = `<span class="text-[9px] text-slate-500 italic uppercase">No Broadcasters Found</span>`; 
+}
+// --- End Broadcasters Logic ---    // Servers Restored with "Coming Soon" logic
             const sL = document.getElementById('server-list'); sL.innerHTML = "";
             if (!m.streamLinks || m.streamLinks.length === 0) {
                 sL.innerHTML = `<div class="p-8 bg-rose-500/5 border border-dashed border-rose-500/20 rounded-2xl text-center">

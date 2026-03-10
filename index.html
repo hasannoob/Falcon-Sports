@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Falcon Sports - Create By Hasan</title>
     
-    <!-- Google Analytics (gtag.js) - এখানে আপনার ID বসান -->
+    <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2KEN4C5WZX"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-2KEN4C5WZX');
     </script>
     
@@ -51,7 +50,6 @@
 
         body { background-color: var(--bg-color); font-family: 'Inter', sans-serif; color: var(--text-main); transition: background 0.3s ease; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
         
-        /* Match Card */
         .match-card { background: var(--card-bg); border-radius: 20px; border: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; overflow: hidden; width: 100%; display: block; }
         .match-card:active { transform: scale(0.98); }
         
@@ -64,7 +62,6 @@
 
         .broadcaster-tag { background: var(--bg-color); border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 12px; font-size: 11px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
 
-        /* Modals */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 5000; display: none; align-items: center; justify-content: center; padding: 20px; }
         .modal-content { background: var(--card-bg); border: 1px solid var(--border-color); width: 100%; max-width: 450px; border-radius: 28px; max-height: 70vh; overflow-y: auto; padding: 30px; position: relative; }
 
@@ -105,7 +102,6 @@
     </header>
 
     <main class="max-w-3xl mx-auto p-4 min-h-screen">
-        <!-- Tabs -->
         <div id="home-tabs" class="flex bg-[var(--card-bg)] rounded-2xl border border-[var(--border-color)] mb-6 overflow-hidden p-1 shadow-sm">
             <div class="tab-btn flex-1 text-center active rounded-xl" onclick="switchTab('all', this)">All</div>
             <div class="tab-btn flex-1 text-center rounded-xl" onclick="switchTab('live', this)">Live</div>
@@ -139,14 +135,6 @@
                         <div class="flex-1"><img id="det-t2-img" src="" class="w-20 h-20 mx-auto object-contain mb-4"><p id="det-t2-name" class="font-black text-sm uppercase"></p></div>
                     </div>
                     <div id="det-time-box" class="mt-10 inline-block bg-rose-600 text-white px-8 py-3 rounded-2xl text-[10px] font-bold tracking-widest uppercase shadow-lg"></div>
-                </div>
-                
-                <!-- Smart Link -->
-                <div class="p-6 border-b border-[var(--border-color)] bg-rose-600/5">
-                    <h3 class="text-[15px] font-black text-rose-500 mb-4 tracking-[2px] uppercase">High Speed Link</h3>
-                    <a href="https://www.effectivegatecpm.com/zdqc4sm7qt?key=2ee33388356594706e35bcca2fde65ed" class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-[20px] font-bold text-xs shadow-xl active:scale-95 transition-all">
-                        <span><i class="fas fa-bolt mr-3"></i> PREMIUM SERVER (NO ADS)</span><i class="fas fa-external-link-alt opacity-70"></i>
-                    </a>
                 </div>
 
                 <div class="p-6 border-b border-[var(--border-color)]">
@@ -202,6 +190,7 @@
                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Stable internet is required for HD experience. Switch servers if one is buffering.</p>
             </div>
 
+            <!-- Footer for Player Overlay (Restored) -->
             <div class="mt-10 py-8 text-center border-t border-white/10">
                 <div class="flex justify-center gap-4 text-[8px] font-bold text-slate-500 uppercase mb-4 tracking-widest">
                     <button onclick="openInfo('about')">About</button>
@@ -215,11 +204,15 @@
     </div>
 
     <script>
+        // AD LOGIC
+        const SMART_LINK = "https://www.effectivegatecpm.com/zdqc4sm7qt?key=2ee33388356594706e35bcca2fde65ed";
+        let clickTracker = 0;
+
         const infoData = {
-            about: { title: "About Us", body: "Falcon Sports is a professional sports broadcast aggregator. We provide the latest schedules, live match updates, and high-quality streaming links globally." },
-            contact: { title: "Contact Us", body: "Join our official Telegram channel @falconsports1 for 24/7 support. You can also reach us via email at support@falconsports.net" },
-            privacy: { title: "Privacy Policy", body: "We value user privacy. Falcon Sports does not collect personal identity information. Browser data is only used for caching." },
-            disclaimer: { title: "Disclaimer", body: "Falcon Sports does not host video content. We provide indexed links to third-party streaming servers. Copyright holders should contact the content providers." }
+            about: { title: "About Us", body: "Falcon Sports is a professional sports broadcast aggregator." },
+            contact: { title: "Contact Us", body: "Join our official Telegram channel @falconsports1 for 24/7 support." },
+            privacy: { title: "Privacy Policy", body: "We value user privacy. Browser data is only used for caching." },
+            disclaimer: { title: "Disclaimer", body: "Falcon Sports does not host video content. Copyright holders should contact providers." }
         };
 
         function openInfo(t) { 
@@ -244,7 +237,6 @@
 
         let allMatches = [], art = null, leaguePlaylists = {}, currentFilter = 'all';
 
-        // History Navigation Fix
         window.history.replaceState({page: 'home'}, "");
         window.onpopstate = (e) => {
             if (e.state?.page === 'home') renderHomeUI();
@@ -269,7 +261,6 @@
             return (h>0?h+":":"")+m.toString().padStart(2,'0')+":"+Math.floor((diff%60000)/1000).toString().padStart(2,'0');
         }
 
-        // Intervals
         setInterval(() => {
             document.querySelectorAll('.live-timer-span').forEach(el => el.innerText = getElapsed(el.getAttribute('data-start')));
             const vEl = document.getElementById('player-viewer-count');
@@ -315,11 +306,12 @@
                 let badge = isL ? `<span class="status-badge bg-rose-500/10 text-rose-500"><span class="live-pulse"></span>Live <span class="live-timer-span" data-start="${m.matchTime}">${getElapsed(m.matchTime)}</span></span>` : 
                             (isF ? `<span class="status-badge bg-slate-500/10 text-slate-500">Finished</span>` : `<span class="status-badge bg-blue-500/10 text-blue-500">Upcoming</span>`);
 
+                // RESTORED MATCH CARD WITH DATE/TIME FOOTER
                 container.innerHTML += `
                     <div class="match-card p-5" onclick="showDetails('${m.id}')">
                         <div class="flex justify-between items-center mb-5 gap-3">
                             <div class="league-info" style="display:flex; align-items:center; gap:8px; flex:1; overflow:hidden;">
-                                <img src="${m.leagueLogo}" style="width:20px; height:20px; object-fit:contain; flex-shrink:0; background:rgba(255,255,255,0.1); border-radius:4px; padding:2px;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/5351/5351315.png'"> 
+                                <img src="${m.leagueLogo}" style="width:20px; height:20px; object-fit:contain; flex-shrink:0; border-radius:4px; padding:2px;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/5351/5351315.png'"> 
                                 <div class="league-title-wrapper"><span class="league-title-scroll text-[10px] font-black text-slate-500 uppercase tracking-widest">${m.leagueTitle}</span></div>
                             </div>
                             ${badge}
@@ -357,64 +349,41 @@
             document.getElementById('det-t2-img').src = m.team2Logo;
             document.getElementById('det-time-box').innerText = new Date(m.matchTime).toLocaleString([], {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}).toUpperCase();
 
-// --- Broadcasters Logic (এই অংশটুকু পরিবর্তন করুন) ---
-const bList = document.getElementById('broadcaster-list'); 
-bList.innerHTML = "";
-let foundChans = [];
-
-// ১. ম্যাচটি কোন স্পোর্টস টাইপের (FOOTBALL নাকি CRICKET) সেটি দেখা
-const matchSport = m.sportType || "FOOTBALL"; 
-
-// ২. ডাটাবেসে সেই স্পোর্টস ক্যাটাগরির প্লেলিস্ট আছে কি না চেক করা
-const sportCategoryData = leaguePlaylists[matchSport];
-
-if (sportCategoryData) {
-    // ৩. ঐ স্পোর্টস ক্যাটাগরির ভেতরে সব লিগ প্লেলিস্ট চেক করা
-    Object.values(sportCategoryData).forEach(item => {
-        if (item.league && m.leagueTitle) {
-            let matchLeagueName = m.leagueTitle.toLowerCase().trim();
-            let playlistLeagueName = item.league.toLowerCase().trim();
-            
-            // ৪. লিগের নাম আংশিক বা হুবহু মিললে চ্যানেলগুলো নিয়ে নেওয়া
-            if (matchLeagueName.includes(playlistLeagueName) || playlistLeagueName.includes(matchLeagueName)) {
-                foundChans = item.channels || [];
+            // Broadcaster logic
+            const bList = document.getElementById('broadcaster-list'); bList.innerHTML = "";
+            let foundChans = [];
+            if (leaguePlaylists) {
+                Object.values(leaguePlaylists).forEach(cat => {
+                    Object.values(cat).forEach(item => {
+                        if (item.league && m.leagueTitle && m.leagueTitle.toLowerCase().includes(item.league.toLowerCase())) {
+                            foundChans = item.channels || [];
+                        }
+                    });
+                });
             }
-        }
-    });
-}
+            if (foundChans.length > 0) {
+                foundChans.forEach(ch => { bList.innerHTML += `<div class="broadcaster-tag"><i class="fas fa-tv"></i> ${ch.name}</div>`; });
+            } else { bList.innerHTML = `<span class="text-[9px] text-slate-500 italic uppercase">No Broadcasters Found</span>`; }
 
-// ৫. যদি নির্দিষ্ট স্পোর্টস টাইপে না পায়, তবে সব ক্যাটাগরিতে একবার সার্চ করা (সেফটি চেক)
-if (foundChans.length === 0 && leaguePlaylists) {
-    Object.values(leaguePlaylists).forEach(cat => {
-        Object.values(cat).forEach(item => {
-            if (item.league && m.leagueTitle && m.leagueTitle.toLowerCase().includes(item.league.toLowerCase())) {
-                foundChans = item.channels || [];
-            }
-        });
-    });
-}
-
-// ৬. চ্যানেলগুলো স্ক্রিনে দেখানো
-if (foundChans.length > 0) {
-    foundChans.forEach(ch => { 
-        bList.innerHTML += `<div class="broadcaster-tag"><i class="fas fa-tv"></i> ${ch.name}</div>`; 
-    });
-} else { 
-    bList.innerHTML = `<span class="text-[9px] text-slate-500 italic uppercase">No Broadcasters Found</span>`; 
-}
-// --- End Broadcasters Logic ---    // Servers Restored with "Coming Soon" logic
+            // SERVER LIST WITH AD LOGIC
             const sL = document.getElementById('server-list'); sL.innerHTML = "";
             if (!m.streamLinks || m.streamLinks.length === 0) {
-                sL.innerHTML = `<div class="p-8 bg-rose-500/5 border border-dashed border-rose-500/20 rounded-2xl text-center">
-                                    <p class="text-[10px] font-black text-rose-500 uppercase tracking-widest">Links Updating Soon...</p>
-                                    <p class="text-[8px] font-bold text-slate-500 uppercase mt-2 tracking-widest">Available 15-30 mins before kick-off</p>
-                                </div>`;
+                sL.innerHTML = `<div class="p-8 bg-rose-500/5 border border-dashed border-rose-500/20 rounded-2xl text-center"><p class="text-[10px] font-black text-rose-500 uppercase tracking-widest">Links Updating Soon...</p></div>`;
             } else {
                 m.streamLinks.forEach((l, i) => {
-                    sL.innerHTML += `<button onclick="startStreaming('${l.link}', '${m.team1Name} vs ${m.team2Name}', '${m.id}')" class="flex items-center justify-between p-4 bg-rose-600 text-white rounded-2xl font-bold text-xs shadow-lg active:scale-95 transition-all"><span><i class="fas fa-play-circle mr-3"></i> ${l.name || 'SERVER ' + (i+1)}</span><i class="fas fa-chevron-right opacity-50"></i></button>`;
+                    sL.innerHTML += `<button onclick="handleInteraction('${l.link}', '${m.team1Name} vs ${m.team2Name}', '${m.id}')" class="flex items-center justify-between p-4 bg-rose-600 text-white rounded-2xl font-bold text-xs shadow-lg active:scale-95 transition-all"><span><i class="fas fa-play-circle mr-3"></i> ${l.name || 'SERVER ' + (i+1)}</span><i class="fas fa-chevron-right opacity-50"></i></button>`;
                 });
             }
             window.scrollTo(0,0);
+        }
+
+        // AD INTERACTION LOGIC
+        function handleInteraction(u, t, mid) {
+            clickTracker++;
+            if (clickTracker === 2) {
+                window.open(SMART_LINK, '_blank');
+            }
+            startStreaming(u, t, mid);
         }
 
         function renderHomeUI() {
